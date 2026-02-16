@@ -1,909 +1,366 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
+import { motion, useScroll, useSpring, useTransform, AnimatePresence } from "framer-motion";
+import { Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import { Download, Sun, Moon, Home, FileText, Menu, X } from "lucide-react";
 import dynamic from "next/dynamic";
 
-// Enhanced loading components with mobile-optimized skeletons
-const HeroSkeleton = () => (
-  <div className="min-h-screen flex items-center justify-center px-4 sm:px-8">
-    <div className="max-w-4xl mx-auto text-center space-y-6 sm:space-y-8">
-      <Skeleton className="h-12 sm:h-16 w-full sm:w-3/4 mx-auto" />
-      <Skeleton className="h-6 sm:h-8 w-3/4 sm:w-1/2 mx-auto" />
-      <Skeleton className="h-4 sm:h-6 w-5/6 sm:w-2/3 mx-auto" />
-      <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 pt-6 sm:pt-8">
-        <Skeleton className="h-10 sm:h-12 w-full sm:w-32" />
-        <Skeleton className="h-10 sm:h-12 w-full sm:w-32" />
-      </div>
-    </div>
-  </div>
-);
+const Hero = dynamic(() => import("@/components/sections/hero"), { ssr: false });
+const Skills = dynamic(() => import("@/components/sections/skill"), { ssr: false });
+const Projects = dynamic(() => import("@/components/sections/project"), { ssr: false });
+const Experience = dynamic(() => import("@/components/sections/experience"), { ssr: false });
+const Contact = dynamic(() => import("@/components/sections/contact"), { ssr: false });
+const Footer = dynamic(() => import("@/components/shared/footer"), { ssr: false });
+const ChatBot = dynamic(() => import("@/components/shared/chatbot"), { ssr: false });
 
-const ProjectsSkeleton = () => (
-  <div className="max-w-6xl mx-auto px-4 sm:px-8 space-y-6 sm:space-y-8">
-    <div className="text-center space-y-3 sm:space-y-4">
-      <Skeleton className="h-10 sm:h-12 w-40 sm:w-48 mx-auto" />
-      <Skeleton className="h-5 sm:h-6 w-80 sm:w-96 mx-auto" />
-    </div>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-      {[...Array(6)].map((_, i) => (
-        <div key={i} className="space-y-3 sm:space-y-4 p-4 sm:p-6 border rounded-lg">
-          <Skeleton className="h-40 sm:h-48 w-full" />
-          <Skeleton className="h-5 sm:h-6 w-3/4" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-2/3" />
-          <div className="flex flex-wrap gap-2">
-            <Skeleton className="h-5 sm:h-6 w-12 sm:w-16" />
-            <Skeleton className="h-5 sm:h-6 w-12 sm:w-16" />
-            <Skeleton className="h-5 sm:h-6 w-12 sm:w-16" />
+/*
+ * Flowing constellation background
+ * — Nodes connected by lines, orbital paths, flowing curves
+ * — Everything feels intentional and interconnected
+ */
+function ConstellationBackground() {
+  const { scrollYProgress } = useScroll();
+  const y1 = useTransform(scrollYProgress, [0, 1], [0, -100]);
+  const y2 = useTransform(scrollYProgress, [0, 1], [0, -160]);
+  const y3 = useTransform(scrollYProgress, [0, 1], [0, 60]);
+  const r1 = useTransform(scrollYProgress, [0, 1], [0, 45]);
+  const r2 = useTransform(scrollYProgress, [0, 1], [0, -30]);
+  const s1 = useTransform(scrollYProgress, [0, 0.5, 1], [1, 1.1, 0.95]);
+
+  // Shared node style
+  const node = "rounded-full bg-black/[0.08] dark:bg-white/[0.12]";
+  const nodeRing = "rounded-full border border-black/[0.06] dark:border-white/[0.09]";
+  const line = "bg-gradient-to-r from-transparent via-black/[0.06] dark:via-white/[0.08] to-transparent";
+  const lineV = "bg-gradient-to-b from-transparent via-black/[0.06] dark:via-white/[0.08] to-transparent";
+
+  return (
+    <div className="fixed inset-0 z-0 pointer-events-none">
+      {/* Subtle grid */}
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(128,128,128,0.4) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(128,128,128,0.4) 1px, transparent 1px)
+          `,
+          backgroundSize: "80px 80px",
+        }}
+      />
+
+      {/* ===== CONSTELLATION CLUSTER 1 — top-right network ===== */}
+      <motion.div style={{ y: y1 }} className="absolute inset-0">
+        {/* Central orbit */}
+        <div className="absolute top-[8%] right-[10%] w-[250px] h-[250px]">
+          <div className={`absolute inset-0 ${nodeRing}`} />
+          <div className={`absolute inset-[50px] border border-dashed border-black/[0.04] dark:border-white/[0.06] rounded-full`} />
+          {/* Center node */}
+          <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[8px] h-[8px] ${node}`} />
+          {/* Orbiting nodes */}
+          <div className={`absolute top-[0%] left-[50%] -translate-x-1/2 w-[6px] h-[6px] ${node}`} />
+          <div className={`absolute top-[50%] right-[0%] -translate-y-1/2 w-[5px] h-[5px] ${node}`} />
+          <div className={`absolute bottom-[0%] left-[50%] -translate-x-1/2 w-[4px] h-[4px] ${node}`} />
+        </div>
+
+        {/* Branch line going down-left from orbit → to node */}
+        <div className="absolute top-[28%] right-[22%] w-[180px] h-[1px] rotate-[35deg]" >
+          <div className={`w-full h-full ${line}`} />
+        </div>
+        {/* Target node of that branch */}
+        <div className={`absolute top-[38%] right-[35%] w-[10px] h-[10px] ${nodeRing}`}>
+          <div className={`absolute inset-[2px] ${node}`} />
+        </div>
+
+        {/* Another branch from that node going further left */}
+        <div className="absolute top-[39%] right-[36%] w-[120px] h-[1px] rotate-[10deg]" >
+          <div className={`w-full h-full ${line}`} />
+        </div>
+        {/* Endpoint node */}
+        <div className={`absolute top-[40%] right-[48%] w-[5px] h-[5px] ${node}`} />
+
+        {/* Vertical branch going down from cluster */}
+        <div className={`absolute top-[28%] right-[15%] w-[1px] h-[150px] ${lineV}`} />
+        {/* Node at bottom of vertical */}
+        <div className={`absolute top-[48%] right-[14.5%] w-[7px] h-[7px] ${nodeRing}`} />
+
+        {/* Connect to cross */}
+        <div className="absolute top-[49%] right-[15%] w-[80px] h-[1px] rotate-[0deg]">
+          <div className={`w-full h-full ${line}`} />
+        </div>
+        <div className="absolute top-[46%] right-[20%]">
+          <div className="w-[40px] h-[1px] bg-black/[0.06] dark:bg-white/[0.08]" />
+          <div className="w-[1px] h-[40px] bg-black/[0.06] dark:bg-white/[0.08] absolute top-[-20px] left-[20px]" />
+        </div>
+      </motion.div>
+
+      {/* ===== CONSTELLATION CLUSTER 2 — left side flowing path ===== */}
+      <motion.div style={{ y: y2 }} className="absolute inset-0">
+        {/* Starting node — top left */}
+        <div className={`absolute top-[15%] left-[6%] w-[10px] h-[10px] ${nodeRing}`}>
+          <div className={`absolute inset-[2px] ${node}`} />
+        </div>
+
+        {/* Flowing diagonal line down-right */}
+        <div className="absolute top-[16%] left-[7%] w-[200px] h-[1px] rotate-[55deg] origin-left">
+          <div className={`w-full h-full ${line}`} />
+        </div>
+
+        {/* Mid node */}
+        <div className={`absolute top-[35%] left-[16%] w-[7px] h-[7px] ${node}`} />
+
+        {/* Branch right */}
+        <div className="absolute top-[35.5%] left-[17%] w-[130px] h-[1px] rotate-[-5deg]">
+          <div className={`w-full h-full ${line}`} />
+        </div>
+        {/* Node with ring */}
+        <div className={`absolute top-[34%] left-[27%] w-[20px] h-[20px] ${nodeRing}`}>
+          <div className={`absolute inset-[6px] ${node}`} />
+        </div>
+
+        {/* Continue path downward */}
+        <div className={`absolute top-[36%] left-[16.5%] w-[1px] h-[180px] ${lineV}`} />
+
+        {/* Lower node */}
+        <div className={`absolute top-[58%] left-[16%] w-[6px] h-[6px] ${node}`} />
+
+        {/* Branch from lower node to left */}
+        <div className="absolute top-[58%] left-[5%] w-[100px] h-[1px]">
+          <div className={`w-full h-full ${line}`} />
+        </div>
+        {/* Terminal node on edge */}
+        <div className={`absolute top-[57.5%] left-[4%] w-[5px] h-[5px] ${node}`} />
+
+        {/* Triangle formed by 3 connected nodes */}
+        <div className="absolute top-[70%] left-[8%]">
+          {/* Node A */}
+          <div className={`absolute top-0 left-[40px] w-[6px] h-[6px] ${node}`} />
+          {/* Node B */}
+          <div className={`absolute top-[50px] left-0 w-[5px] h-[5px] ${node}`} />
+          {/* Node C */}
+          <div className={`absolute top-[50px] left-[80px] w-[5px] h-[5px] ${node}`} />
+          {/* Lines AB, AC, BC */}
+          <div className="absolute top-[3px] left-[42px] w-[55px] h-[1px] rotate-[48deg] origin-left">
+            <div className={`w-full h-full bg-black/[0.05] dark:bg-white/[0.07]`} />
+          </div>
+          <div className="absolute top-[3px] left-[42px] w-[55px] h-[1px] rotate-[130deg] origin-left">
+            <div className={`w-full h-full bg-black/[0.05] dark:bg-white/[0.07]`} />
+          </div>
+          <div className="absolute top-[52px] left-[3px] w-[78px] h-[1px]">
+            <div className={`w-full h-full bg-black/[0.05] dark:bg-white/[0.07]`} />
           </div>
         </div>
-      ))}
-    </div>
-  </div>
-);
+      </motion.div>
 
-const SkillsSkeleton = () => (
-  <div className="space-y-6 sm:space-y-8">
-    <div className="text-center space-y-3 sm:space-y-4">
-      <Skeleton className="h-10 sm:h-12 w-40 sm:w-48 mx-auto" />
-      <Skeleton className="h-5 sm:h-6 w-80 sm:w-96 mx-auto" />
-    </div>
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-      {[...Array(12)].map((_, i) => (
-        <div key={i} className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border rounded-lg">
-          <Skeleton className="h-6 sm:h-8 w-6 sm:w-8 rounded" />
-          <Skeleton className="h-4 sm:h-5 w-16 sm:w-20" />
+      {/* ===== CONSTELLATION CLUSTER 3 — center-bottom, rotating hub ===== */}
+      <motion.div style={{ y: y3 }} className="absolute inset-0">
+        {/* Rotating hub */}
+        <motion.div style={{ rotate: r1 }} className="absolute top-[65%] left-[55%]">
+          <div className={`w-[80px] h-[80px] ${nodeRing}`} />
+          <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[6px] h-[6px] ${node}`} />
+          {/* 4 spoke nodes */}
+          <div className={`absolute -top-[3px] left-1/2 -translate-x-1/2 w-[4px] h-[4px] ${node}`} />
+          <div className={`absolute -bottom-[3px] left-1/2 -translate-x-1/2 w-[4px] h-[4px] ${node}`} />
+          <div className={`absolute top-1/2 -left-[3px] -translate-y-1/2 w-[4px] h-[4px] ${node}`} />
+          <div className={`absolute top-1/2 -right-[3px] -translate-y-1/2 w-[4px] h-[4px] ${node}`} />
+        </motion.div>
+
+        {/* Line from hub to right */}
+        <div className="absolute top-[68%] left-[60%] w-[200px] h-[1px] rotate-[-8deg]">
+          <div className={`w-full h-full ${line}`} />
         </div>
-      ))}
-    </div>
-  </div>
-);
-
-const ExperienceSkeleton = () => (
-  <div className="space-y-6 sm:space-y-8">
-    <div className="text-center space-y-3 sm:space-y-4">
-      <Skeleton className="h-10 sm:h-12 w-40 sm:w-48 mx-auto" />
-      <Skeleton className="h-5 sm:h-6 w-80 sm:w-96 mx-auto" />
-    </div>
-    <div className="space-y-4 sm:space-y-6">
-      {[...Array(3)].map((_, i) => (
-        <div key={i} className="flex flex-col sm:flex-row gap-4 sm:gap-6 p-4 sm:p-6 border rounded-lg">
-          <Skeleton className="h-12 w-12 sm:h-16 sm:w-16 rounded self-start" />
-          <div className="flex-1 space-y-2 sm:space-y-3">
-            <Skeleton className="h-5 sm:h-6 w-40 sm:w-48" />
-            <Skeleton className="h-4 sm:h-5 w-28 sm:w-32" />
-            <Skeleton className="h-3 sm:h-4 w-20 sm:w-24" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
+        {/* End node right */}
+        <div className={`absolute top-[66%] right-[18%] w-[8px] h-[8px] ${nodeRing}`}>
+          <div className={`absolute inset-[2px] ${node}`} />
         </div>
-      ))}
-    </div>
-  </div>
-);
 
-const ContactSkeleton = () => (
-  <div className="max-w-2xl mx-auto space-y-6 sm:space-y-8">
-    <div className="text-center space-y-3 sm:space-y-4">
-      <Skeleton className="h-10 sm:h-12 w-40 sm:w-48 mx-auto" />
-      <Skeleton className="h-5 sm:h-6 w-80 sm:w-96 mx-auto" />
-    </div>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-      <div className="space-y-3 sm:space-y-4">
-        <Skeleton className="h-10 sm:h-12 w-full" />
-        <Skeleton className="h-10 sm:h-12 w-full" />
-        <Skeleton className="h-24 sm:h-32 w-full" />
-        <Skeleton className="h-10 sm:h-12 w-full" />
-      </div>
-      <div className="space-y-3 sm:space-y-4">
-        <Skeleton className="h-6 sm:h-8 w-28 sm:w-32" />
-        <div className="space-y-2 sm:space-y-3">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex items-center gap-2 sm:gap-3">
-              <Skeleton className="h-4 sm:h-5 w-4 sm:w-5 rounded" />
-              <Skeleton className="h-4 sm:h-5 w-32 sm:w-40" />
-            </div>
-          ))}
+        {/* Line from hub upward-left */}
+        <div className={`absolute top-[52%] left-[56%] w-[1px] h-[120px] ${lineV}`} />
+        {/* Node up */}
+        <div className={`absolute top-[50%] left-[55.5%] w-[5px] h-[5px] ${node}`} />
+
+        {/* Scaling connected ring — bottom right */}
+        <motion.div style={{ scale: s1 }} className="absolute top-[80%] right-[8%]">
+          <div className={`w-[60px] h-[60px] ${nodeRing}`} />
+          <div className={`absolute inset-[18px] border border-dashed border-black/[0.04] dark:border-white/[0.06] rounded-full`} />
+        </motion.div>
+        {/* Line connecting to it */}
+        <div className="absolute top-[68%] right-[10%] w-[1px] h-[100px]">
+          <div className={`w-full h-full ${lineV}`} />
         </div>
-      </div>
-    </div>
-  </div>
-);
+      </motion.div>
 
-// Dynamic imports with enhanced skeleton loading
-const Hero = dynamic(() => import("@/components/sections/hero"), {
-  loading: () => <HeroSkeleton />,
-});
-const Projects = dynamic(() => import("@/components/sections/project"), {
-  loading: () => <ProjectsSkeleton />,
-});
-const Experience = dynamic(() => import("@/components/sections/experience"), {
-  loading: () => <ExperienceSkeleton />,
-});
-const Skills = dynamic(() => import("@/components/sections/skill"), {
-  loading: () => <SkillsSkeleton />,
-});
-const Contact = dynamic(() => import("@/components/sections/contact"), {
-  loading: () => <ContactSkeleton />,
-});
-const Footer = dynamic(() => import("@/components/shared/footer"), {
-  loading: () => (
-    <div className="py-8 sm:py-12 border-t">
-      <div className="max-w-6xl mx-auto px-4 sm:px-8">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-          <Skeleton className="h-5 sm:h-6 w-28 sm:w-32" />
-          <div className="flex gap-3 sm:gap-4">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-6 sm:h-8 w-6 sm:w-8 rounded" />
+      {/* ===== CONSTELLATION CLUSTER 4 — right mid, counter-rotating ===== */}
+      <motion.div style={{ y: y1 }} className="absolute inset-0">
+        <motion.div style={{ rotate: r2 }} className="absolute top-[55%] right-[5%]">
+          <div className="w-[30px] h-[30px] border border-black/[0.06] dark:border-white/[0.08] rotate-45" />
+          <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[5px] h-[5px] ${node}`} />
+        </motion.div>
+      </motion.div>
+
+      {/* ===== FLOWING PATH — connecting top to bottom ===== */}
+      <motion.div style={{ y: y2 }} className="absolute inset-0">
+        {/* Vertical spine — the main flow */}
+        <div className={`absolute top-[5%] left-[48%] w-[1px] h-[90%] bg-gradient-to-b from-transparent via-black/[0.04] dark:via-white/[0.06] to-transparent`} />
+
+        {/* Nodes along the spine */}
+        <div className={`absolute top-[12%] left-[47.5%] w-[6px] h-[6px] ${node} animate-float`} style={{ animationDelay: "0s" }} />
+        <div className={`absolute top-[30%] left-[47.5%] w-[4px] h-[4px] ${node} animate-float`} style={{ animationDelay: "1s" }} />
+        <div className={`absolute top-[50%] left-[47.5%] w-[5px] h-[5px] ${node} animate-float`} style={{ animationDelay: "2s" }} />
+        <div className={`absolute top-[72%] left-[47.5%] w-[4px] h-[4px] ${node} animate-float`} style={{ animationDelay: "3s" }} />
+        <div className={`absolute top-[90%] left-[47.5%] w-[6px] h-[6px] ${node} animate-float`} style={{ animationDelay: "4s" }} />
+
+        {/* Horizontal branches from spine — like a tree */}
+        <div className="absolute top-[30%] left-[48.5%] w-[80px] h-[1px]">
+          <div className={`w-full h-full ${line}`} />
+        </div>
+        <div className="absolute top-[50%] left-[38%] w-[80px] h-[1px]">
+          <div className={`w-full h-full ${line}`} />
+        </div>
+        <div className="absolute top-[72%] left-[49%] w-[60px] h-[1px]">
+          <div className={`w-full h-full ${line}`} />
+        </div>
+      </motion.div>
+
+      {/* ===== DOT GRID CLUSTERS — feel like data/network points ===== */}
+      <motion.div style={{ y: y3 }} className="absolute inset-0">
+        {/* Grid cluster — top center-right */}
+        <div className="absolute top-[5%] left-[60%]">
+          <div className="grid grid-cols-4 gap-3">
+            {Array.from({ length: 16 }).map((_, i) => (
+              <div key={`tg-${i}`} className={`w-[3px] h-[3px] ${node}`} />
             ))}
           </div>
         </div>
-      </div>
-    </div>
-  ),
-});
 
-type Theme = 'light' | 'dark';
-
-export default function PortfolioHome() {
-  const [theme, setTheme] = useState<Theme>('dark');
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [activeSection, setActiveSection] = useState('home');
-  const [lastScrollY, setLastScrollY] = useState(0);
-  const [isClient, setIsClient] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Client-side hydration check
-  useEffect(() => {
-    setIsClient(true);
-    
-    // Mobile detection
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Theme management with better performance
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
-      setTheme(savedTheme);
-    } else {
-      // Default to system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setTheme(prefersDark ? 'dark' : 'light');
-    }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const isDarkTheme = theme === 'dark';
-    document.documentElement.classList.toggle('dark', isDarkTheme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  // Enhanced scroll handler with mobile-optimized section detection and earlier dulling
-  const handleScroll = useCallback(() => {
-    const currentScrollY = window.scrollY;
-    setLastScrollY(currentScrollY);
-
-    // Mobile menu auto-close on scroll
-    if (isMobileMenuOpen && Math.abs(currentScrollY - lastScrollY) > 50) {
-      setIsMobileMenuOpen(false);
-    }
-
-    // Enhanced section detection with earlier dulling for mobile
-    const sections = ['home', 'projects', 'skills', 'experience', 'contact'];
-    let currentSection = 'home';
-    
-    const viewportHeight = window.innerHeight;
-    // Reduced threshold for earlier dulling effect - mobile gets even earlier dulling
-    const scrollThreshold = isMobile ? viewportHeight * 0.3 : viewportHeight * 0.5;
-    
-    for (let i = sections.length - 1; i >= 0; i--) {
-      const sectionId = sections[i];
-      let element;
-      
-      if (sectionId === 'home') {
-        // For home, check if we're still in the hero area
-        element = document.querySelector('#hero') || document.body;
-      } else {
-        element = document.getElementById(sectionId);
-      }
-      
-      if (element) {
-        const rect = element.getBoundingClientRect();
-        const elementTop = rect.top;
-        const elementHeight = rect.height;
-        
-        // Enhanced visibility calculation for earlier dulling
-        // Element starts dulling when it's only 30% visible on mobile, 50% on desktop
-        const visibleHeight = Math.min(viewportHeight - Math.max(elementTop, 0), elementHeight);
-        const visibilityRatio = visibleHeight / Math.min(viewportHeight, elementHeight);
-        
-        // More aggressive section switching for mobile
-        const switchThreshold = isMobile ? 0.2 : 0.3;
-        
-        if (visibilityRatio > switchThreshold || 
-            (elementTop <= scrollThreshold && elementTop + elementHeight > scrollThreshold)) {
-          currentSection = sectionId;
-          break;
-        }
-      }
-    }
-
-    setActiveSection(currentSection);
-  }, [isMobile, isMobileMenuOpen, lastScrollY]);
-
-  // Throttled scroll listener with reduced throttling for mobile
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    let ticking = false;
-    const throttledScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          handleScroll();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener("scroll", throttledScroll, { passive: true });
-    throttledScroll(); // Initial call
-    
-    return () => window.removeEventListener("scroll", throttledScroll);
-  }, [handleScroll]);
-
-  // Optimized resume download with error handling
-  const handleDownloadResume = useCallback(async () => {
-    try {
-      setIsDownloading(true);
-
-      // Check if file exists with timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-      const response = await fetch("/Resume.pdf", { 
-        method: "HEAD",
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error("Resume file not found");
-      }
-
-      // Create optimized download
-      const link = document.createElement("a");
-      link.href = "/Resume.pdf";
-      link.download = "Hrushi_Bhanvadiya_Resume.pdf";
-      link.style.display = "none";
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // Brief delay for UX
-      setTimeout(() => setIsDownloading(false), 800);
-
-    } catch (error) {
-      console.error("Resume download failed:", error);
-      alert("Resume temporarily unavailable. Please try again later.");
-      setIsDownloading(false);
-    }
-  }, []);
-
-  // Memoized navigation items
-  const navItems = useMemo(() => [
-    { name: "Projects", href: "#projects" },
-    { name: "Skills", href: "#skills" },
-    { name: "Experience", href: "#experience" },
-    { name: "Contact", href: "#contact" },
-  ], []);
-
-  const toggleTheme = useCallback(() => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
-  }, []);
-
-  const toggleMobileMenu = useCallback(() => {
-    setIsMobileMenuOpen(prev => !prev);
-  }, []);
-
-  // Optimized smooth scroll with mobile considerations
-  const handleNavClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    e.preventDefault();
-    setIsMobileMenuOpen(false); // Close mobile menu
-    
-    const element = document.querySelector(href);
-    if (element) {
-      // Offset for fixed header - more offset on mobile
-      const offset = isMobile ? 80 : 100;
-      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset - offset;
-      
-      window.scrollTo({
-        top: elementPosition,
-        behavior: 'smooth'
-      });
-    }
-  }, [isMobile]);
-
-  // Memoized breadcrumb name getter
-  const getBreadcrumbName = useCallback((section: string) => {
-    const names: { [key: string]: string } = {
-      'home': 'Portfolio',
-      'projects': 'Projects',
-      'skills': 'Skills',
-      'experience': 'Experience',
-      'contact': 'Contact'
-    };
-    return names[section] || 'Portfolio';
-  }, []);
-
-  // Memoized scroll to top handler
-  const scrollToTop = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    setIsMobileMenuOpen(false);
-  }, []);
-
-  // Enhanced loading state with mobile-optimized skeletons
-  if (!isClient) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white">
-        {/* Navigation Skeleton */}
-        <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-black/[0.06] dark:border-white/[0.06]">
-          <div className="max-w-6xl mx-auto px-4 sm:px-8 py-3 sm:py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4 sm:gap-8">
-                <Skeleton className="h-5 sm:h-6 w-10 sm:w-12" />
-                <Skeleton className="hidden sm:block h-4 sm:h-5 w-28 sm:w-32" />
-              </div>
-              <div className="flex items-center gap-2 sm:gap-3">
-                <Skeleton className="h-8 sm:h-9 w-16 sm:w-24" />
-                <Skeleton className="h-8 sm:h-9 w-8 sm:w-9 rounded-full" />
-                <Skeleton className="h-8 sm:h-9 w-16 sm:w-20 rounded-full" />
-              </div>
-            </div>
+        {/* Grid cluster — bottom left */}
+        <div className="absolute top-[82%] left-[5%]">
+          <div className="grid grid-cols-3 gap-2.5">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div key={`bg-${i}`} className={`w-[3px] h-[3px] ${node}`} />
+            ))}
           </div>
-        </nav>
-        
-        {/* Main Content Skeleton */}
-        <div className="pt-16 sm:pt-20">
-          <HeroSkeleton />
         </div>
-      </div>
-    );
-  }
+      </motion.div>
+
+      {/* ===== AMBIENT GLOWS ===== */}
+      <div className="absolute top-[5%] left-[0%] w-[600px] h-[600px] bg-blue-500/[0.02] dark:bg-blue-400/[0.035] rounded-full blur-[150px]" />
+      <div className="absolute top-[40%] right-[-10%] w-[500px] h-[500px] bg-violet-500/[0.015] dark:bg-violet-400/[0.03] rounded-full blur-[130px]" />
+      <div className="absolute bottom-[10%] left-[20%] w-[500px] h-[500px] bg-emerald-500/[0.015] dark:bg-emerald-400/[0.025] rounded-full blur-[120px]" />
+      <div className="absolute bottom-[-10%] right-[15%] w-[400px] h-[400px] bg-amber-500/[0.015] dark:bg-amber-400/[0.025] rounded-full blur-[120px]" />
+    </div>
+  );
+}
+
+// Loading screen
+function LoadingScreen({ onComplete }: { onComplete: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onComplete, 1800);
+    return () => clearTimeout(timer);
+  }, [onComplete]);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white transition-all duration-700 ease-out relative overflow-hidden font-light">
-      {/* Premium Static Background System - Mobile Optimized */}
-      <div className="fixed inset-0 z-0">
-        {/* Base layer with subtle gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50/30 to-white dark:from-black dark:via-gray-950/20 dark:to-black" />
-        
-        {/* Responsive geometric grid pattern */}
-        <div className="absolute inset-0 opacity-[0.015] sm:opacity-[0.02] dark:opacity-[0.03] sm:dark:opacity-[0.04]">
-          <div 
-            className="w-full h-full"
-            style={{
-              backgroundImage: `
-                linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)
-              `,
-              backgroundSize: isMobile ? '40px 40px' : '60px 60px'
-            }}
-          />
-        </div>
-        
-        {/* Mobile-optimized radial gradient overlays */}
-        <div className="absolute inset-0">
-          {/* Top-left ethereal glow - smaller on mobile */}
-          <div 
-            className="absolute top-0 left-0 opacity-[0.02] sm:opacity-[0.03] dark:opacity-[0.04] sm:dark:opacity-[0.06]"
-            style={{
-              width: isMobile ? '400px' : '800px',
-              height: isMobile ? '300px' : '600px',
-              background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 40%, transparent 70%)',
-              filter: 'blur(1px)'
-            }}
-          />
-          
-          {/* Center focal point - adjusted for mobile */}
-          <div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.01] sm:opacity-[0.015] dark:opacity-[0.02] sm:dark:opacity-[0.03]"
-            style={{
-              width: isMobile ? '500px' : '1000px',
-              height: isMobile ? '200px' : '400px',
-              background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 60%, transparent 90%)'
-            }}
-          />
-        </div>
-        
-        {/* Mobile-optimized noise texture */}
-        <div 
-          className="absolute inset-0 opacity-[0.01] sm:opacity-[0.015] dark:opacity-[0.02] sm:dark:opacity-[0.025] mix-blend-overlay"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-            backgroundSize: isMobile ? '120px 120px' : '180px 180px'
-          }}
-        />
-        
-        {/* Subtle vignette effect */}
-        <div 
-          className="absolute inset-0 opacity-[0.3] sm:opacity-[0.4] dark:opacity-[0.5] sm:dark:opacity-[0.6]"
-          style={{
-            background: 'radial-gradient(ellipse at center, transparent 0%, transparent 50%, rgba(0,0,0,0.02) 100%)'
-          }}
-        />
-        
-        {/* Minimal geometric accents - hidden on small mobile */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none hidden sm:block">
-          <div className="absolute top-[10%] left-[8%] w-px h-32 bg-black/[0.08] dark:bg-white/[0.08] rotate-12" />
-          <div className="absolute top-[12%] left-[8.5%] w-16 h-px bg-black/[0.06] dark:bg-white/[0.06] rotate-12" />
-          <div className="absolute bottom-[15%] right-[10%] w-px h-24 bg-black/[0.06] dark:bg-white/[0.06] -rotate-12" />
-          <div className="absolute bottom-[17%] right-[10.5%] w-12 h-px bg-black/[0.08] dark:bg-white/[0.08] -rotate-12" />
-        </div>
-      </div>
-
-      {/* Enhanced Mobile-First Custom Scrollbar Styles */}
-      <style jsx global>{`
-        /* Smooth transitions for all elements */
-        * {
-          transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-        
-        .fast-transition {
-          transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-        
-        html {
-          scroll-behavior: smooth;
-        }
-        
-        /* Mobile-first scrollbar - only visible on desktop */
-        @media (min-width: 768px) {
-          ::-webkit-scrollbar {
-            width: 6px;
-          }
-          
-          ::-webkit-scrollbar-track {
-            background: ${theme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)'};
-            border-radius: 3px;
-            margin: 4px 0;
-          }
-          
-          ::-webkit-scrollbar-thumb {
-            background: ${theme === 'dark' 
-              ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.2) 100%)' 
-              : 'linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.08) 50%, rgba(0, 0, 0, 0.15) 100%)'
-            };
-            border-radius: 3px;
-            border: 1px solid ${theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'};
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            backdrop-filter: blur(10px);
-          }
-          
-          ::-webkit-scrollbar-thumb:hover {
-            background: ${theme === 'dark' 
-              ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.3) 100%)' 
-              : 'linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.15) 50%, rgba(0, 0, 0, 0.25) 100%)'
-            };
-            border-color: ${theme === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)'};
-            transform: scaleX(1.2);
-          }
-          
-          html {
-            scrollbar-width: thin;
-            scrollbar-color: ${theme === 'dark' 
-              ? 'rgba(255, 255, 255, 0.15) rgba(255, 255, 255, 0.02)' 
-              : 'rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.02)'
-            };
-          }
-        }
-        
-        /* Mobile touch scrolling enhancement */
-        @media (max-width: 767px) {
-          * {
-            -webkit-overflow-scrolling: touch;
-          }
-          
-          body {
-            overscroll-behavior-y: contain;
-          }
-        }
-        
-        /* Mobile-optimized selection styling */
-        ::selection {
-          background: ${theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'};
-          color: inherit;
-        }
-        
-        ::-moz-selection {
-          background: ${theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'};
-          color: inherit;
-        }
-        
-        /* Prevent horizontal scroll on mobile */
-        @media (max-width: 767px) {
-          body {
-            overflow-x: hidden;
-          }
-        }
-        
-        /* Enhanced mobile backdrop blur support */
-        @supports (-webkit-backdrop-filter: blur(10px)) {
-          .mobile-backdrop-blur {
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
-          }
-        }
-        
-        /* Mobile menu animation */
-        .mobile-menu-enter {
-          opacity: 0;
-          transform: translateY(-10px);
-        }
-        
-        .mobile-menu-enter-active {
-          opacity: 1;
-          transform: translateY(0);
-          transition: opacity 0.2s ease-out, transform 0.2s ease-out;
-        }
-        
-        .mobile-menu-exit {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        
-        .mobile-menu-exit-active {
-          opacity: 0;
-          transform: translateY(-10px);
-          transition: opacity 0.15s ease-in, transform 0.15s ease-in;
-        }
-      `}</style>
-
-      {/* Navigation - Always Visible */}
-      {/* Mobile-First Navigation - Always Visible */}
-      <nav className="fixed top-0 left-0 right-0 z-50">
-        <div className="bg-white/80 dark:bg-black/80 mobile-backdrop-blur border-b border-black/[0.06] dark:border-white/[0.06] shadow-sm transition-all duration-500 ease-out">
-          <div className="max-w-6xl mx-auto px-4 sm:px-8 py-3 sm:py-4">
-            <div className="flex items-center justify-between">
-              {/* Left side - Logo and breadcrumb */}
-              <div className="flex items-center gap-4 sm:gap-8">
-                <div className="font-mono text-base sm:text-lg font-medium tracking-tight hover:scale-105 transition-transform duration-300 ease-out cursor-pointer touch-manipulation">
-                  HB<span className="text-black/40 dark:text-white/40">.</span>
-                </div>
-
-                {/* Desktop breadcrumb - hidden on mobile */}
-                <Breadcrumb className="hidden lg:flex">
-                  <BreadcrumbList>
-                    <BreadcrumbItem>
-                      <BreadcrumbLink 
-                        href="#" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          scrollToTop();
-                        }}
-                        className="flex items-center gap-2 text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white transition-all duration-300 ease-out hover:scale-105 touch-manipulation"
-                      >
-                        <Home className="w-3.5 h-3.5 transition-transform duration-300 ease-out" />
-                        Home
-                      </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator className="text-black/30 dark:text-white/30" />
-                    <BreadcrumbItem>
-                      <BreadcrumbPage className="text-black dark:text-white font-medium">
-                        {getBreadcrumbName(activeSection)}
-                      </BreadcrumbPage>
-                    </BreadcrumbItem>
-                  </BreadcrumbList>
-                </Breadcrumb>
-              </div>
-
-              {/* Right side - Actions and mobile menu */}
-              <div className="flex items-center gap-2 sm:gap-3">
-                {/* Desktop navigation - hidden on mobile */}
-                <div className="hidden md:flex items-center space-x-1">
-                  {navItems.map((item) => (
-                    <a
-                      key={item.name}
-                      href={item.href}
-                      onClick={(e) => handleNavClick(e, item.href)}
-                      className={`relative transition-all duration-300 ease-out font-normal text-sm px-4 py-2 rounded-full hover:scale-105 group touch-manipulation ${
-                        activeSection === item.href.substring(1)
-                          ? 'text-black dark:text-white bg-black/[0.06] dark:bg-white/[0.06]'
-                          : 'text-black/70 dark:text-white/70 hover:text-black dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.04]'
-                      }`}
-                    >
-                      {item.name}
-                      {/* Subtle underline effect */}
-                      <div className={`absolute bottom-1 left-1/2 h-0.5 bg-black/20 dark:bg-white/20 rounded-full transition-all duration-300 ease-out ${
-                        activeSection === item.href.substring(1)
-                          ? 'w-6 -translate-x-1/2'
-                          : 'w-0 group-hover:w-6 group-hover:-translate-x-1/2 translate-x-0'
-                      }`} />
-                    </a>
-                  ))}
-                </div>
-
-                {/* Theme toggle - always visible */}
-                <Button
-                  onClick={toggleTheme}
-                  variant="ghost"
-                  size="sm"
-                  className="w-8 h-8 sm:w-9 sm:h-9 p-0 hover:bg-black/[0.04] dark:hover:bg-white/[0.04] rounded-full border border-black/[0.06] dark:border-white/[0.06] bg-white/60 dark:bg-black/60 mobile-backdrop-blur transition-all duration-300 ease-out hover:scale-110 hover:rotate-12 touch-manipulation"
-                  aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-                >
-                  {theme === 'light' ? <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
-                </Button>
-
-                {/* Resume download - always visible */}
-                <Button
-                  onClick={handleDownloadResume}
-                  disabled={isDownloading}
-                  variant="outline"
-                  size="sm"
-                  className="group relative overflow-hidden border-black/[0.12] dark:border-white/[0.12] bg-white/70 dark:bg-black/70 mobile-backdrop-blur hover:bg-white/90 dark:hover:bg-black/90 hover:border-black/[0.16] dark:hover:border-white/[0.16] transition-all duration-300 ease-out px-3 sm:px-4 py-2 sm:py-2.5 rounded-full font-normal text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 hover:shadow-lg touch-manipulation"
-                  aria-label="Download resume PDF"
-                >
-                  <div className="flex items-center gap-1.5 sm:gap-2.5">
-                    {isDownloading ? (
-                      <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-300 ease-out group-hover:scale-110 group-hover:-translate-y-0.5" />
-                    )}
-                    <span className="hidden sm:inline transition-all duration-300 ease-out">
-                      {isDownloading ? 'Downloading...' : 'Resume'}
-                    </span>
-                    <FileText className="hidden sm:inline w-3 h-3 opacity-50 transition-all duration-300 ease-out group-hover:opacity-70 group-hover:scale-110" />
-                  </div>
-
-                  {/* Subtle hover effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/[0.02] dark:via-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out" />
-                </Button>
-
-                {/* Mobile menu button - only visible on mobile */}
-                <Button
-                  onClick={toggleMobileMenu}
-                  variant="ghost"
-                  size="sm"
-                  className="md:hidden w-8 h-8 p-0 hover:bg-black/[0.04] dark:hover:bg-white/[0.04] rounded-full border border-black/[0.06] dark:border-white/[0.06] bg-white/60 dark:bg-black/60 mobile-backdrop-blur transition-all duration-300 ease-out hover:scale-110 touch-manipulation"
-                  aria-label="Toggle mobile menu"
-                  aria-expanded={isMobileMenuOpen}
-                >
-                  {isMobileMenuOpen ? (
-                    <X className="w-4 h-4 transition-all duration-300 ease-out" />
-                  ) : (
-                    <Menu className="w-4 h-4 transition-all duration-300 ease-out" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile menu dropdown */}
-          <div className={`md:hidden overflow-hidden transition-all duration-300 ease-out ${
-            isMobileMenuOpen 
-              ? 'max-h-96 opacity-100' 
-              : 'max-h-0 opacity-0'
-          }`}>
-            <div className="border-t border-black/[0.06] dark:border-white/[0.06] bg-white/90 dark:bg-black/90 mobile-backdrop-blur">
-              <div className="max-w-6xl mx-auto px-4 py-4 space-y-1">
-                {/* Mobile breadcrumb */}
-                <div className="flex items-center gap-2 px-4 py-2 text-xs text-black/60 dark:text-white/60">
-                  <Home className="w-3 h-3" />
-                  <span>/</span>
-                  <span className="text-black dark:text-white font-medium">
-                    {getBreadcrumbName(activeSection)}
-                  </span>
-                </div>
-
-                {/* Mobile navigation items */}
-                {navItems.map((item, index) => (
-                  <a
-                    key={item.name}
-                    href={item.href}
-                    onClick={(e) => handleNavClick(e, item.href)}
-                    className={`flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300 ease-out touch-manipulation ${
-                      activeSection === item.href.substring(1)
-                        ? 'bg-black/[0.06] dark:bg-white/[0.06] text-black dark:text-white'
-                        : 'text-black/70 dark:text-white/70 hover:bg-black/[0.04] dark:hover:bg-white/[0.04] hover:text-black dark:hover:text-white'
-                    }`}
-                    style={{
-                      animationDelay: `${index * 50}ms`,
-                      animation: isMobileMenuOpen ? 'slideInFromTop 0.3s ease-out forwards' : 'none'
-                    }}
-                  >
-                    <span className="font-normal text-base">{item.name}</span>
-                    <div className={`w-2 h-2 rounded-full transition-all duration-300 ease-out ${
-                      activeSection === item.href.substring(1)
-                        ? 'bg-black/30 dark:bg-white/30 scale-100'
-                        : 'bg-black/10 dark:bg-white/10 scale-0'
-                    }`} />
-                  </a>
-                ))}
-
-                {/* Mobile menu footer */}
-                <div className="flex items-center justify-center pt-4 mt-4 border-t border-black/[0.06] dark:border-white/[0.06]">
-                  <div className="text-xs text-black/40 dark:text-white/40 font-light tracking-wide">
-                    NAVIGATE
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Mobile menu overlay - for better UX */}
-      {isMobileMenuOpen && (
-        <div 
-          className="md:hidden fixed inset-0 bg-black/20 dark:bg-white/10 z-40 transition-opacity duration-300 ease-out"
-          onClick={() => setIsMobileMenuOpen(false)}
-          style={{ top: '72px' }} // Offset by nav height
-        />
-      )}
-
-      {/* Additional mobile-specific styles */}
-      <style jsx>{`
-        @keyframes slideInFromTop {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        /* Enhanced mobile touch targets */
-        @media (max-width: 767px) {
-          .touch-manipulation {
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-            min-height: 44px;
-            min-width: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-          
-          /* Mobile menu item hover states */
-          .mobile-menu-item:active {
-            transform: scale(0.98);
-            transition: transform 0.1s ease-out;
-          }
-          
-          /* Prevent zoom on input focus */
-          input, select, textarea {
-            font-size: 16px;
-          }
-        }
-        
-        /* Mobile-optimized backdrop blur */
-        .mobile-backdrop-blur {
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-        }
-        
-        @media (max-width: 767px) {
-          .mobile-backdrop-blur {
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-          }
-        }
-      `}</style>
-
-      {/* Hero Section */}
-      <Hero lastScrollY={lastScrollY} />
-
-      {/* Projects Section */}
-      <section id="projects" className="pt-16 pb-12">
-        <div className="relative max-w-6xl mx-auto px-8 mb-12">
-          <div className="flex items-center justify-center">
-            <Separator className="flex-1 bg-black/[0.08] dark:bg-white/[0.08] h-px" />
-            <div className="px-6 text-black/40 dark:text-white/40 text-sm font-light tracking-wide">
-              WORK
-            </div>
-            <Separator className="flex-1 bg-black/[0.08] dark:bg-white/[0.08] h-px" />
-          </div>
-        </div>
-        <Projects />
-      </section>
-
-      {/* Skills Section */}
-      <section id="skills" className="py-12">
-        <div className="relative max-w-6xl mx-auto px-8 mb-12">
-          <div className="flex items-center justify-center">
-            <Separator className="flex-1 bg-black/[0.08] dark:bg-white/[0.08] h-px" />
-            <div className="px-6 text-black/40 dark:text-white/40 text-sm font-light tracking-wide">
-              SKILLS
-            </div>
-            <Separator className="flex-1 bg-black/[0.08] dark:bg-white/[0.08] h-px" />
-          </div>
-        </div>
-        <div className="max-w-6xl mx-auto px-8">
-          <Skills />
-        </div>
-      </section>
-
-      {/* Experience Section */}
-      <section id="experience" className="py-12">
-        <div className="relative max-w-6xl mx-auto px-8 mb-12">
-          <div className="flex items-center justify-center">
-            <Separator className="flex-1 bg-black/[0.08] dark:bg-white/[0.08] h-px" />
-            <div className="px-6 text-black/40 dark:text-white/40 text-sm font-light tracking-wide">
-              EXPERIENCE
-            </div>
-            <Separator className="flex-1 bg-black/[0.08] dark:bg-white/[0.08] h-px" />
-          </div>
-        </div>
-        <div className="max-w-6xl mx-auto px-8">
-          <Experience />
-        </div>
-      </section>
-
-      {/* Contact Section */}
-      <section id="contact" className="py-12">
-        <div className="relative max-w-6xl mx-auto px-8 mb-12">
-          <div className="flex items-center justify-center">
-            <Separator className="flex-1 bg-black/[0.08] dark:bg-white/[0.08] h-px" />
-            <div className="px-6 text-black/40 dark:text-white/40 text-sm font-light tracking-wide">
-              CONTACT
-            </div>
-            <Separator className="flex-1 bg-black/[0.08] dark:bg-white/[0.08] h-px" />
-          </div>
-        </div>
-        <div className="max-w-6xl mx-auto px-8">
-          <Contact />
-        </div>
-      </section>
-
-      {/* Bottom Separator */}
-      <div className="relative max-w-6xl mx-auto px-8 py-12">
-        <div className="flex items-center justify-center">
-          <Separator className="flex-1 bg-black/[0.08] dark:bg-white/[0.08] h-px" />
-          <div className="px-6 text-black/40 dark:text-white/40 text-xs font-light tracking-wider">
-            ◦
-          </div>
-          <Separator className="flex-1 bg-black/[0.08] dark:bg-white/[0.08] h-px" />
-        </div>
-      </div>
-      <Footer />
-      
-      {/* Back to Top */}
-      <div className="fixed bottom-8 right-8 z-40">
-        <Button
-          onClick={scrollToTop}
-          variant="outline"
-          size="sm"
-          className="rounded-full w-12 h-12 border border-black/[0.08] dark:border-white/[0.08] bg-white/60 dark:bg-black/60 backdrop-blur-xl hover:bg-white/80 dark:hover:bg-black/80 transition-all duration-300 ease-out hover:scale-110 hover:shadow-lg"
-          style={{
-            opacity: lastScrollY > 500 ? 1 : 0,
-            transform: `translateY(${lastScrollY > 500 ? '0' : '20px'}) scale(${lastScrollY > 500 ? 1 : 0.8})`
-          }}
-          aria-label="Back to top"
+    <motion.div
+      className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+      exit={{ opacity: 0, scale: 1.05 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <div className="flex flex-col items-center gap-6">
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="w-12 h-12 rounded-xl bg-white flex items-center justify-center"
         >
-          ↑
-        </Button>
+          <span className="text-black font-mono text-lg font-bold">H</span>
+        </motion.div>
+
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="text-center"
+        >
+          <p className="text-white/90 text-sm font-light tracking-[0.3em] uppercase">
+            Hrushi Bhanvadiya
+          </p>
+        </motion.div>
+
+        <motion.div className="w-32 h-[2px] bg-white/10 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-white rounded-full"
+            initial={{ width: "0%" }}
+            animate={{ width: "100%" }}
+            transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+          />
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
+  );
+}
+
+export default function Portfolio() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { scrollYProgress } = useScroll();
+
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return (
+    <>
+      <AnimatePresence mode="wait">
+        {loading && <LoadingScreen onComplete={() => setLoading(false)} />}
+      </AnimatePresence>
+
+      <div className="min-h-screen bg-background text-foreground transition-colors duration-500 overflow-x-hidden selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
+
+        {/* Scroll Progress */}
+        <motion.div
+          className="fixed top-0 left-0 right-0 h-[1.5px] bg-black/80 dark:bg-white/80 z-50 origin-left"
+          style={{ scaleX }}
+        />
+
+        {/* Theme Toggle */}
+        <div className="fixed top-4 right-4 z-50">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="rounded-full w-9 h-9 border-black/[0.06] dark:border-white/[0.06] bg-white/70 dark:bg-black/70 backdrop-blur-md hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-300 active:scale-90"
+          >
+            <Sun className="h-[1rem] w-[1rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-[1rem] w-[1rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
+          </Button>
+        </div>
+
+        {/* Constellation background */}
+        <ConstellationBackground />
+
+        {/* Main content — centered */}
+        <div className="relative z-10">
+          <Hero />
+          <Skills />
+          <Projects />
+          <Experience />
+          <Contact />
+          <Footer />
+        </div>
+
+        {/* Chatbot — floating, doesn't affect layout */}
+        <ChatBot />
+      </div>
+    </>
   );
 }
