@@ -2,9 +2,10 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, X, Send, Loader2, Bot, User } from "lucide-react";
+import { Send, Loader2, Bot, User, MessageSquare, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { track } from "@vercel/analytics";
 
 interface Message {
     role: "user" | "assistant";
@@ -51,6 +52,8 @@ export default function ChatBot() {
         setInput("");
         setIsLoading(true);
 
+        track("Chatbot Message Sent", { length: messageText.length, isSuggestion: !!text });
+
         try {
             const res = await fetch("/api/chat", {
                 method: "POST",
@@ -87,10 +90,11 @@ export default function ChatBot() {
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0 }}
                         transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                        className="fixed bottom-5 right-5 z-50"
+                        className="fixed bottom-[90px] sm:bottom-5 right-5 z-40"
                     >
                         <Button
-                            onClick={() => setIsOpen(true)}
+                            aria-label="Toggle Chatbot"
+                            onClick={() => { setIsOpen(true); track("Chatbot Toggled", { state: "open" }); }}
                             className="rounded-full w-14 h-14 bg-black dark:bg-white text-white dark:text-black shadow-2xl hover:shadow-3xl hover:scale-105 active:scale-95 transition-all duration-300 border-0 p-0"
                         >
                             <MessageSquare className="w-6 h-6" />
@@ -109,7 +113,7 @@ export default function ChatBot() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        className="fixed bottom-5 right-5 z-50 w-[calc(100vw-2.5rem)] sm:w-[400px] h-[min(600px,calc(100vh-3rem))] flex flex-col rounded-2xl overflow-hidden border border-black/[0.08] dark:border-white/[0.08] bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-xl shadow-2xl"
+                        className="fixed bottom-[90px] sm:bottom-5 right-5 z-40 w-[calc(100vw-2.5rem)] sm:w-[400px] h-[min(600px,calc(100vh-120px))] sm:h-[min(600px,calc(100vh-3rem))] flex flex-col rounded-3xl overflow-hidden border border-black/[0.08] dark:border-white/[0.08] bg-white/70 dark:bg-[#0a0a0a]/50 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_rgba(255,255,255,0.02)]"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.06]">
@@ -119,14 +123,11 @@ export default function ChatBot() {
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium">HrushiBot</p>
-                                    <p className="text-[10px] text-black/40 dark:text-white/40 font-mono flex items-center gap-1">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                                        Powered by Gemini
-                                    </p>
                                 </div>
                             </div>
                             <Button
-                                onClick={() => setIsOpen(false)}
+                                aria-label="Close Chatbot"
+                                onClick={() => { setIsOpen(false); track("Chatbot Toggled", { state: "closed" }); }}
                                 variant="ghost"
                                 size="icon"
                                 className="rounded-full w-8 h-8 hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
@@ -136,25 +137,15 @@ export default function ChatBot() {
                         </div>
 
                         {/* Messages */}
+                        {/* Messages */}
                         <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 space-y-4 scrollbar-thin">
                             {messages.map((msg, i) => (
-                                <div key={i} className={cn("flex gap-2.5 max-w-[90%]", msg.role === "user" ? "ml-auto flex-row-reverse" : "")}>
+                                <div key={i} className={cn("flex w-full", msg.role === "user" ? "justify-end" : "justify-start")}>
                                     <div className={cn(
-                                        "w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5",
+                                        "px-4 py-3 rounded-2xl text-sm leading-relaxed max-w-[85%] break-words shadow-sm",
                                         msg.role === "user"
-                                            ? "bg-black dark:bg-white"
-                                            : "bg-black/[0.05] dark:bg-white/[0.05]"
-                                    )}>
-                                        {msg.role === "user"
-                                            ? <User className="w-3 h-3 text-white dark:text-black" />
-                                            : <Bot className="w-3 h-3" />
-                                        }
-                                    </div>
-                                    <div className={cn(
-                                        "px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed break-words overflow-hidden",
-                                        msg.role === "user"
-                                            ? "bg-black dark:bg-white text-white dark:text-black rounded-tr-md"
-                                            : "bg-black/[0.04] dark:bg-white/[0.04] rounded-tl-md"
+                                            ? "bg-black dark:bg-white text-white dark:text-black rounded-br-sm"
+                                            : "bg-white/80 dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] border-b-black/[0.1] dark:border-b-white/[0.1] rounded-bl-sm text-black dark:text-white"
                                     )}>
                                         {msg.content}
                                     </div>
@@ -162,15 +153,12 @@ export default function ChatBot() {
                             ))}
 
                             {isLoading && (
-                                <div className="flex gap-2.5">
-                                    <div className="w-6 h-6 rounded-lg bg-black/[0.05] dark:bg-white/[0.05] flex items-center justify-center shrink-0">
-                                        <Bot className="w-3 h-3" />
-                                    </div>
-                                    <div className="px-3.5 py-2.5 rounded-2xl rounded-tl-md bg-black/[0.04] dark:bg-white/[0.04]">
+                                <div className="flex w-full justify-start">
+                                    <div className="px-5 py-4 rounded-2xl rounded-bl-sm bg-white/80 dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08]">
                                         <div className="flex gap-1">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-black/30 dark:bg-white/30 animate-bounce [animation-delay:0ms]" />
-                                            <span className="w-1.5 h-1.5 rounded-full bg-black/30 dark:bg-white/30 animate-bounce [animation-delay:150ms]" />
-                                            <span className="w-1.5 h-1.5 rounded-full bg-black/30 dark:bg-white/30 animate-bounce [animation-delay:300ms]" />
+                                            <span className="w-1.5 h-1.5 rounded-full bg-black/40 dark:bg-white/40 animate-pulse [animation-delay:0ms]" />
+                                            <span className="w-1.5 h-1.5 rounded-full bg-black/40 dark:bg-white/40 animate-pulse [animation-delay:150ms]" />
+                                            <span className="w-1.5 h-1.5 rounded-full bg-black/40 dark:bg-white/40 animate-pulse [animation-delay:300ms]" />
                                         </div>
                                     </div>
                                 </div>
@@ -185,8 +173,8 @@ export default function ChatBot() {
                                 {SUGGESTIONS.map((s) => (
                                     <button
                                         key={s}
-                                        onClick={() => sendMessage(s)}
-                                        className="text-[11px] px-3 py-1.5 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.02] text-black/60 dark:text-white/60 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-300 active:scale-95"
+                                        onClick={() => { track("Chatbot Suggestion Clicked", { text: s }); sendMessage(s); }}
+                                        className="text-[12px] sm:text-[11px] px-4 py-2 sm:px-3 sm:py-1.5 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.02] text-black/60 dark:text-white/60 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-300 active:scale-95"
                                     >
                                         {s}
                                     </button>
@@ -197,22 +185,25 @@ export default function ChatBot() {
                         {/* Input */}
                         <div className="px-4 py-3 border-t border-black/[0.06] dark:border-white/[0.06]">
                             <div className="flex items-center gap-2">
-                                <input
-                                    ref={inputRef}
-                                    type="text"
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    onKeyDown={handleKeyDown}
-                                    placeholder="Ask about Hrushi..."
-                                    className="flex-1 text-sm bg-black/[0.03] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.06] rounded-xl px-4 py-2.5 outline-none focus:ring-1 focus:ring-black/20 dark:focus:ring-white/20 transition-all placeholder:text-black/25 dark:placeholder:text-white/25"
-                                    disabled={isLoading}
-                                />
+                                <div className="flex-1 rounded-2xl overflow-hidden bg-black/[0.04] dark:bg-white/[0.04] border border-black/[0.08] dark:border-white/[0.08] focus-within:ring-1 focus-within:ring-black/20 dark:focus-within:ring-white/20 transition-all">
+                                    <input
+                                        ref={inputRef}
+                                        type="text"
+                                        value={input}
+                                        onChange={(e) => setInput(e.target.value)}
+                                        onKeyDown={handleKeyDown}
+                                        placeholder="Ask about Hrushi..."
+                                        className="w-full text-sm bg-transparent px-4 py-3 outline-none placeholder:text-black/30 dark:placeholder:text-white/30"
+                                        disabled={isLoading}
+                                    />
+                                </div>
                                 <Button
+                                    aria-label="Send Message"
                                     onClick={() => sendMessage()}
                                     disabled={!input.trim() || isLoading}
-                                    className="rounded-xl w-10 h-10 p-0 bg-black dark:bg-white text-white dark:text-black hover:bg-black/80 dark:hover:bg-white/80 active:scale-95 transition-all disabled:opacity-30 border-0 shrink-0"
+                                    className="rounded-full w-12 h-12 p-0 bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90 shadow-[0_0_15px_rgba(0,0,0,0.1)] dark:shadow-[0_0_15px_rgba(255,255,255,0.1)] active:scale-95 transition-all disabled:opacity-30 border-0 shrink-0"
                                 >
-                                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                    {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-4 h-4 ml-0.5" />}
                                 </Button>
                             </div>
                         </div>

@@ -1,0 +1,36 @@
+
+> hrushi-portfolio@0.1.0 build
+> next build
+
+   Γû▓ Next.js 15.5.12
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully in 2.8s
+   Linting and checking validity of types ...
+ Γ¿» ESLint: Named export 'FlatCompat' not found. The requested module '@eslint/eslintrc' is a CommonJS module, which may not support all module.exports as named exports. CommonJS modules can always be imported via the default export, for example using:  import pkg from '@eslint/eslintrc'; const { FlatCompat } = pkg; 
+   Collecting page data ...
+ ΓÜá Using edge runtime on a page currently disables static generation for that page
+   Generating static pages (0/6) ...
+   Generating static pages (1/6) 
+   Generating static pages (2/6) 
+   Generating static pages (4/6) 
+ Γ£ô Generating static pages (6/6)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+Γöî Γùï /                                    4.64 kB         118 kB
+Γö£ Γùï /_not-found                            994 B         103 kB
+Γö£ ╞Æ /api/chat                              131 B         103 kB
+Γö£ ╞Æ /api/contact                           131 B         103 kB
+Γöö ╞Æ /icon                                  131 B         103 kB
++ First Load JS shared by all             102 kB
+  Γö£ chunks/255-ebd51be49873d76c.js         46 kB
+  Γö£ chunks/4bd1b696-c023c6e3521b1417.js  54.2 kB
+  Γöö other shared chunks (total)          2.24 kB
+
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+

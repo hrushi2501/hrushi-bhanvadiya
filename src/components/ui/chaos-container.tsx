@@ -1,14 +1,14 @@
 "use client";
 
-import { motion, useScroll, useSpring, useInView } from "framer-motion";
-import { useRef, ReactNode, useMemo, Children, isValidElement, memo } from "react";
+import { useRef, ReactNode, Children, isValidElement, memo, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
-// Deterministic pseudo-random based on seed — avoids hydration mismatches
-const seededRandom = (seed: number) => {
-  const x = Math.sin(seed) * 10000;
-  return x - Math.floor(x);
-};
+/*
+ * Performance-first ChaosContainer
+ * ─────────────────────────────────
+ * Uses IntersectionObserver + CSS transitions instead of framer-motion
+ * for silky-smooth entry animations with zero JS animation overhead.
+ */
 
 interface ChaosContainerProps {
   children: ReactNode;
@@ -20,11 +20,30 @@ interface ChaosContainerProps {
   triggerOnce?: boolean;
 }
 
-const INTENSITY_CONFIG = {
-  low: { x: 50, y: 50, rotate: 5, scale: 0.95, opacity: 0 },
-  medium: { x: 100, y: 100, rotate: 15, scale: 0.9, opacity: 0 },
-  high: { x: 200, y: 200, rotate: 45, scale: 0.8, opacity: 0 },
-} as const;
+const OFFSETS: Record<string, { x: string; y: string }> = {
+  low: { x: "30px", y: "20px" },
+  medium: { x: "50px", y: "30px" },
+  high: { x: "80px", y: "50px" },
+};
+
+function getTranslate(
+  intensity: "low" | "medium" | "high",
+  direction: string,
+): string {
+  const { x, y } = OFFSETS[intensity];
+  switch (direction) {
+    case "left": return `translateX(-${x})`;
+    case "right": return `translateX(${x})`;
+    case "top": return `translateY(-${y})`;
+    case "bottom": return `translateY(${y})`;
+    default: return `translateY(${y})`;
+  }
+}
+
+function getDuration(intensity: "low" | "medium" | "high", speed: number): number {
+  const base = intensity === "low" ? 0.4 : intensity === "medium" ? 0.5 : 0.6;
+  return base / speed;
+}
 
 export const ChaosContainer = memo(({
   children,
@@ -36,61 +55,44 @@ export const ChaosContainer = memo(({
   triggerOnce = false,
 }: ChaosContainerProps) => {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: triggerOnce, margin: "-10% 0px -10% 0px" });
+  const [visible, setVisible] = useState(false);
 
-  const { x, y, rotate, scale, opacity } = INTENSITY_CONFIG[intensity];
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
 
-  // Stable initial state — computed once per component instance
-  const initialState = useMemo(() => {
-    let initialX = 0;
-    let initialY = 0;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          if (triggerOnce) obs.disconnect();
+        } else if (!triggerOnce) {
+          setVisible(false);
+        }
+      },
+      { rootMargin: "-8% 0px -8% 0px", threshold: 0.01 }
+    );
 
-    switch (direction) {
-      case "left": initialX = -x; break;
-      case "right": initialX = x; break;
-      case "top": initialY = -y; break;
-      case "bottom": initialY = y; break;
-      case "random":
-      default: {
-        const seed = x + y + rotate + scale;
-        initialX = seededRandom(seed) * 2 * x - x;
-        initialY = seededRandom(seed + 1) * 2 * y - y;
-        break;
-      }
-    }
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [triggerOnce]);
 
-    return {
-      x: initialX,
-      y: initialY,
-      rotate: direction === "random" ? seededRandom(x + y) * 2 * rotate - rotate : 0,
-      scale,
-      opacity,
-    };
-  }, [direction, x, y, rotate, scale, opacity]);
-
-  const animateState = useMemo(() => ({
-    x: 0, y: 0, rotate: 0, scale: 1, opacity: 1,
-  }), []);
-
-  const transition = useMemo(() => ({
-    duration: 0.8 * speed,
-    type: "spring" as const,
-    damping: 20,
-    stiffness: 100,
-    mass: 0.8,
-    delay,
-  }), [speed, delay]);
+  const duration = getDuration(intensity, speed);
+  const translate = getTranslate(intensity, direction);
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      className={cn("will-change-transform", className)}
-      initial={initialState}
-      animate={isInView ? animateState : initialState}
-      transition={transition}
+      className={cn(className)}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "none" : translate,
+        transition: `opacity ${duration}s cubic-bezier(0.22,1,0.36,1) ${delay}s, transform ${duration}s cubic-bezier(0.22,1,0.36,1) ${delay}s`,
+        willChange: visible ? "auto" : "opacity, transform",
+      }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 });
 ChaosContainer.displayName = "ChaosContainer";
@@ -114,30 +116,24 @@ export const StaggerGroup = memo(({
   direction = "random",
   speed = 1,
   triggerOnce = false,
-}: StaggerGroupProps) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: triggerOnce, margin: "-5% 0px -5% 0px" });
-
-  return (
-    <div ref={ref} className={className}>
-      {Children.map(children, (child, index) => {
-        if (!isValidElement(child)) return child;
-
-        return (
-          <ChaosContainer
-            intensity={intensity}
-            direction={direction}
-            speed={speed}
-            delay={isInView ? index * staggerDelay : 0}
-            triggerOnce={triggerOnce}
-          >
-            {child}
-          </ChaosContainer>
-        );
-      })}
-    </div>
-  );
-});
+}: StaggerGroupProps) => (
+  <div className={className}>
+    {Children.map(children, (child, index) => {
+      if (!isValidElement(child)) return child;
+      return (
+        <ChaosContainer
+          intensity={intensity}
+          direction={direction}
+          speed={speed}
+          delay={index * staggerDelay}
+          triggerOnce={triggerOnce}
+        >
+          {child}
+        </ChaosContainer>
+      );
+    })}
+  </div>
+));
 StaggerGroup.displayName = "StaggerGroup";
 
 // Chapter badge for narrative sections
@@ -159,59 +155,3 @@ export const ChapterBadge = memo(({
   </ChaosContainer>
 ));
 ChapterBadge.displayName = "ChapterBadge";
-
-// Section divider for narrative transitions
-export const SectionDivider = memo(({ className }: { className?: string }) => (
-  <div className={cn("relative h-32 md:h-48 overflow-hidden", className)}>
-    <div className="absolute inset-0 flex items-center justify-center">
-      <div className="w-[1px] h-full bg-gradient-to-b from-transparent via-black/10 dark:via-white/10 to-transparent" />
-    </div>
-  </div>
-));
-SectionDivider.displayName = "SectionDivider";
-
-export const LaserLine = memo(({
-  direction = "vertical",
-  color = "bg-primary",
-  className
-}: {
-  direction?: "vertical" | "horizontal",
-  color?: string,
-  className?: string
-}) => {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"]
-  });
-
-  const scaleVal = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001
-  });
-
-  return (
-    <motion.div
-      ref={ref}
-      className={cn(
-        "absolute z-0",
-        direction === "vertical" ? "w-[1px] h-full left-1/2 -translate-x-1/2" : "h-[1px] w-full top-1/2 -translate-y-1/2",
-        color,
-        className
-      )}
-      style={{
-        scaleY: direction === "vertical" ? scaleVal : 1,
-        scaleX: direction === "horizontal" ? scaleVal : 1,
-        originY: 0,
-        originX: 0,
-      }}
-    >
-      <div className={cn(
-        "absolute inset-0 blur-[2px]",
-        color
-      )} />
-    </motion.div>
-  );
-});
-LaserLine.displayName = "LaserLine";

@@ -2,12 +2,13 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Mail, Code, ChevronDown } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Mail, Code, ChevronDown, Download } from "lucide-react";
 import { ChaosContainer } from "@/components/ui/chaos-container";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef, useState, useEffect, useMemo, memo } from "react";
+import { toast } from "sonner";
+import { track } from "@vercel/analytics";
+import { useRef, useState, useEffect, memo } from "react";
 
 const GitHubIcon = memo(({ className }: { className?: string }) => (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -23,38 +24,111 @@ const LinkedInIcon = memo(({ className }: { className?: string }) => (
 ));
 LinkedInIcon.displayName = "LinkedInIcon";
 
-const TerminalLine = memo(({ text, delay = 0, prefix = "$" }: { text: string; delay?: number; prefix?: string }) => {
-    const [displayed, setDisplayed] = useState("");
-    const [showCursor, setShowCursor] = useState(true);
+const TITLES = ["Hrushi Bhanvadiya", "Developer", "Problem Solver", "Engineer"];
+
+const TypewriterTitle = memo(() => {
+    const [text, setText] = useState("");
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [loopNum, setLoopNum] = useState(0);
+    const [typingSpeed, setTypingSpeed] = useState(150);
 
     useEffect(() => {
-        let intervalId: ReturnType<typeof setInterval>;
-        const timeout = setTimeout(() => {
-            let i = 0;
-            intervalId = setInterval(() => {
-                if (i < text.length) {
-                    setDisplayed(text.slice(0, i + 1));
-                    i++;
-                } else {
-                    clearInterval(intervalId);
-                    setTimeout(() => setShowCursor(false), 500);
-                }
-            }, 35);
-        }, delay);
-        return () => { clearTimeout(timeout); if (intervalId) clearInterval(intervalId); };
-    }, [text, delay]);
+        const handleTyping = () => {
+            const i = loopNum % TITLES.length;
+            const fullText = TITLES[i];
+
+            setText(current => isDeleting
+                ? fullText.substring(0, current.length - 1)
+                : fullText.substring(0, current.length + 1)
+            );
+
+            // Calculate next speed
+            let nextSpeed = isDeleting ? 30 : 150;
+
+            if (!isDeleting && text === fullText) {
+                nextSpeed = 2000; // Pause at end
+                setIsDeleting(true);
+            } else if (isDeleting && text === "") {
+                setIsDeleting(false);
+                setLoopNum(l => l + 1);
+                nextSpeed = 500; // Pause before next word
+            }
+
+            setTypingSpeed(nextSpeed);
+        };
+
+        const timer = setTimeout(handleTyping, typingSpeed) as unknown as number;
+        return () => clearTimeout(timer);
+    }, [text, isDeleting, loopNum, typingSpeed]);
 
     return (
-        <div className="flex items-start gap-2 text-xs">
-            <span className="text-black/30 dark:text-white/30 select-none shrink-0">{prefix}</span>
-            <span className="text-black/60 dark:text-white/60">
-                {displayed}
-                {showCursor && <span className="animate-typewriter-cursor ml-0.5 text-black dark:text-white">▎</span>}
-            </span>
-        </div>
+        <span className="inline-flex items-center min-w-[200px]">
+            {text}
+            <span className="animate-typewriter-cursor ml-1 inline-block bg-black/80 dark:bg-white/80 w-1 h-[1em] align-middle"></span>
+        </span>
     );
 });
-TerminalLine.displayName = "TerminalLine";
+TypewriterTitle.displayName = "TypewriterTitle";
+
+/* ─── Rotating interests typewriter (RESTORED) ─── */
+const INTEREST_SETS = [
+    "Systems Design · RAG · DSA",
+    "RL · LLMs · Agentic AI",
+    "Cloud Native · ML · DBMS",
+    "OS · DL · Python",
+];
+
+const RotatingInterests = memo(({ startDelay = 0 }: { startDelay?: number }) => {
+    const [text, setText] = useState("");
+    const [showCursor, setShowCursor] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+        const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+        async function run() {
+            await sleep(startDelay);
+            if (cancelled) return;
+            setShowCursor(true);
+            let idx = 0;
+
+            while (!cancelled) {
+                const target = INTEREST_SETS[idx % INTEREST_SETS.length];
+
+                // Type forward
+                for (let i = 1; i <= target.length; i++) {
+                    if (cancelled) return;
+                    setText(target.slice(0, i));
+                    await sleep(40);
+                }
+
+                // Pause while fully typed
+                await sleep(2500);
+
+                // Erase backward
+                for (let i = target.length - 1; i >= 0; i--) {
+                    if (cancelled) return;
+                    setText(target.slice(0, i));
+                    await sleep(20);
+                }
+
+                await sleep(400);
+                idx++;
+            }
+        }
+
+        run();
+        return () => { cancelled = true; };
+    }, [startDelay]);
+
+    return (
+        <span className="text-black/60 dark:text-white/60 inline-flex items-center min-w-[280px]">
+            {text}
+            {showCursor && <span className="animate-typewriter-cursor ml-0.5 text-black dark:text-white inline-block">▎</span>}
+        </span>
+    );
+});
+RotatingInterests.displayName = "RotatingInterests";
 
 const SOCIAL_LINKS = [
     { name: "GitHub", icon: GitHubIcon, href: "https://github.com/hrushi2501" },
@@ -63,172 +137,181 @@ const SOCIAL_LINKS = [
     { name: "LeetCode", icon: Code, href: "https://leetcode.com/Hrushi2501" }
 ] as const;
 
-const TECHNOLOGIES = ["C++", "Python", "Rust", "Next.js", "TypeScript", "React.js", "Flask", "Tailwind CSS"] as const;
+const TECHNOLOGIES = ["C++", "Python", "Next.js", "TypeScript", "React.js", "Flask", "Tailwind CSS"] as const;
 
 export default function Hero() {
     const sectionRef = useRef<HTMLDivElement>(null);
-    const { scrollYProgress } = useScroll({
-        target: sectionRef,
-        offset: ["start start", "end start"]
-    });
-    const backgroundY = useTransform(scrollYProgress, [0, 1], [0, -80]);
 
-    const scrollToSkills = useMemo(() => () => {
-        document.getElementById("skills")?.scrollIntoView({ behavior: "smooth" });
-    }, []);
+    const bentoCardClass = "relative overflow-hidden rounded-[2rem] border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.03] dark:bg-white/[0.03] backdrop-blur-xl shadow-sm hover:bg-black/[0.05] dark:hover:bg-white/[0.05] hover:border-black/[0.1] dark:hover:border-white/[0.1] transition-all duration-500 h-full w-full flex flex-col";
 
     return (
         <section ref={sectionRef} className="relative flex flex-col min-h-[100svh] overflow-hidden">
-            <motion.div
-                className="absolute inset-0 z-0 pointer-events-none"
-                style={{ y: backgroundY }}
-            >
-                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-black/[0.015] dark:bg-white/[0.015] rounded-full blur-[80px]" />
-                <div className="absolute bottom-1/3 right-1/4 w-48 h-48 bg-black/[0.01] dark:bg-white/[0.01] rounded-full blur-[80px]" />
-            </motion.div>
+            <main className="relative z-10 flex-1 flex items-center pt-24 pb-24">
+                <div className="max-w-5xl mx-auto px-4 sm:px-8 w-full">
+                    {/* Bento Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[160px] md:auto-rows-[190px]">
 
-            <main className="relative z-10 flex-1 flex items-center pt-16 pb-24 sm:pt-20">
-                <div className="max-w-6xl mx-auto px-4 sm:px-8 w-full">
-                    {/* Two-column layout: left = identity, right = terminal+stats */}
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-10 lg:gap-16">
-
-                        {/* LEFT — Main identity content */}
-                        <div className="space-y-6 flex-1 min-w-0 text-center lg:text-left">
-                            {/* Status */}
-                            <ChaosContainer intensity="low" direction="top" delay={0.2}>
-                                <div className="flex justify-center lg:justify-start">
-                                    <Badge variant="default" className="bg-black dark:bg-white text-white dark:text-black px-4 py-1.5 text-[11px] font-mono rounded-full tracking-wider border-0 font-medium">
+                        {/* 1. Main Identity (2x2) */}
+                        <ChaosContainer intensity="low" delay={0.2} className="md:col-span-2 md:row-span-2 h-full">
+                            <div className={bentoCardClass + " p-8 md:p-10 justify-between dark:bg-white/[0.02]"}>
+                                <div>
+                                    <Badge variant="default" className="bg-black/10 dark:bg-white/10 text-black dark:text-white px-3 py-1 mb-6 text-[10px] font-mono rounded-full tracking-wider border-0 flex items-center gap-2 w-fit">
+                                        <div className="relative flex h-2 w-2">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                        </div>
                                         OPEN TO WORK
                                     </Badge>
-                                </div>
-                            </ChaosContainer>
-
-                            {/* Name */}
-                            <ChaosContainer intensity="medium" direction="top" delay={0.3}>
-                                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extralight leading-[1.05] tracking-tight">
-                                    Hrushi
-                                    <br />
-                                    <span className="text-black/40 dark:text-white/40">Bhanvadiya</span>
-                                </h1>
-                            </ChaosContainer>
-
-                            {/* Tagline */}
-                            <ChaosContainer intensity="low" delay={0.5}>
-                                <div className="space-y-1 mx-auto lg:mx-0 max-w-md">
-                                    <p className="text-base sm:text-lg text-black/70 dark:text-white/70 font-light">
-                                        Undergrad at <span className="text-black dark:text-white font-normal">Nirma University</span>.
-                                    </p>
-                                    <p className="text-sm text-black/40 dark:text-white/40 font-light">
-                                        Building systems, breaking problems, shipping code.
+                                    <h1 className="text-4xl sm:text-5xl lg:text-6xl leading-[1.05] tracking-tight mb-4">
+                                        <span className="font-light text-black dark:text-white">Hrushi</span>
+                                        <br />
+                                        <span className="font-light text-black/70 dark:text-white/70">Bhanvadiya</span>
+                                    </h1>
+                                    <p className="text-black/70 dark:text-white/70 font-light max-w-sm text-sm sm:text-base">
+                                        Computer Science Undergrad building robust systems & intelligent solutions.
                                     </p>
                                 </div>
-                            </ChaosContainer>
+                                <div className="mt-8">
+                                    <button
+                                        onClick={() => {
+                                            track("Resume Download", { source: "hero_button" });
+                                            toast("Downloading Resume...", { description: "Your file is opening in a new tab." });
+                                            setTimeout(() => {
+                                                window.open("/resume.pdf", "_blank");
+                                            }, 500);
+                                        }}
+                                        className="inline-flex justify-center items-center gap-2 w-full sm:w-auto px-6 py-3.5 sm:px-5 sm:py-2.5 rounded-2xl sm:rounded-full text-sm sm:text-xs font-medium bg-black dark:bg-white text-white dark:text-black hover:scale-[1.03] transition-transform duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_20px_rgba(255,255,255,0.1)]"
+                                    >
+                                        <Download className="w-3.5 h-3.5" />
+                                        Download Resume
+                                        <kbd className="hidden sm:inline-flex ml-2 items-center gap-1 rounded border border-white/20 dark:border-black/20 bg-white/10 dark:bg-black/10 px-1.5 font-mono text-[10px] font-medium opacity-80">
+                                            <span className="text-[9px]">⌘</span>D
+                                        </kbd>
+                                    </button>
+                                </div>
+                            </div>
+                        </ChaosContainer>
 
-                            {/* Metadata */}
-                            <ChaosContainer intensity="low" direction="left" delay={0.6}>
-                                <div className="flex flex-wrap items-center gap-3 text-xs text-black/40 dark:text-white/40 font-mono justify-center lg:justify-start">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                                        <span>Ahmedabad, Gujarat</span>
+                        {/* 2. Terminal Activity (2x1) */}
+                        <ChaosContainer intensity="low" direction="right" delay={0.3} className="md:col-span-2 md:row-span-1 h-full">
+                            <div className={bentoCardClass}>
+                                <div className="bg-black/[0.04] dark:bg-white/[0.04] px-6 py-4 flex items-center gap-2 border-b border-black/[0.06] dark:border-white/[0.06]">
+                                    <div className="w-3 h-3 rounded-full border-[0.5px] border-black/10 dark:border-black/50 bg-[#ff5f56]" />
+                                    <div className="w-3 h-3 rounded-full border-[0.5px] border-black/10 dark:border-black/50 bg-[#ffbd2e]" />
+                                    <div className="w-3 h-3 rounded-full border-[0.5px] border-black/10 dark:border-black/50 bg-[#27c93f]" />
+                                    <div className="ml-2 text-[10px] font-mono text-black/60 dark:text-white/60">~/hrushi</div>
+                                </div>
+                                <div className="p-5 font-mono text-xs sm:text-sm text-black/80 dark:text-white/80 space-y-3 flex-1 flex flex-col justify-center">
+                                    <div>
+                                        <div className="flex gap-2 text-black/60 dark:text-white/60">
+                                            <span>$</span>
+                                            <span className="text-black/90 dark:text-white/90">whoami</span>
+                                        </div>
+                                        <div className="mt-1 pl-4 text-black dark:text-white font-medium min-h-[1.5rem] flex items-center">
+                                            ➜ <TypewriterTitle />
+                                        </div>
                                     </div>
-                                    <span className="text-black/15 dark:text-white/15">·</span>
-                                    <span>Nirma University</span>
-                                    <span className="text-black/15 dark:text-white/15">·</span>
-                                    <span>CGPA 8.72 / 10</span>
+                                    <div className="pt-2 opacity-80">
+                                        <div className="flex gap-2 text-black/60 dark:text-white/60">
+                                            <span>$</span>
+                                            <span className="text-black/90 dark:text-white/90">ls current_focus/</span>
+                                        </div>
+                                        <div className="mt-1 pl-4 flex flex-wrap gap-x-3 text-black/60 dark:text-white/60 min-h-[1.5rem] items-center">
+                                            ➜ <RotatingInterests startDelay={500} />
+                                        </div>
+                                    </div>
                                 </div>
-                            </ChaosContainer>
+                            </div>
+                        </ChaosContainer>
 
-                            <Separator className="bg-black/[0.06] dark:bg-white/[0.06]" />
+                        {/* 3. Location / Uni (1x1) */}
+                        <ChaosContainer intensity="low" direction="bottom" delay={0.4} className="md:col-span-1 md:row-span-1 h-full">
+                            <div className={bentoCardClass + " p-6 flex flex-col justify-center items-center text-center group"}>
+                                <div className="w-10 h-10 rounded-full bg-black/[0.04] dark:bg-white/[0.04] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5 opacity-70">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                                    </svg>
+                                </div>
+                                <h2 className="text-sm font-medium">Ahmedabad, IN</h2>
+                                <p className="text-xs text-black/70 dark:text-white/70 mt-1">Nirma University</p>
+                            </div>
+                        </ChaosContainer>
 
-                            {/* Tech pills */}
-                            <ChaosContainer intensity="low" delay={0.7}>
-                                <div className="flex flex-wrap gap-1.5 justify-center lg:justify-start">
-                                    {TECHNOLOGIES.map((tech) => (
+                        {/* 4. Coding Stats (1x1) */}
+                        <ChaosContainer intensity="low" direction="bottom" delay={0.5} className="md:col-span-1 md:row-span-1 h-full">
+                            <div className={bentoCardClass + " p-6 flex flex-col justify-center"}>
+                                <div className="space-y-4 w-full">
+                                    <div className="flex flex-col">
+                                        <div className="text-3xl font-light tabular-nums">1798</div>
+                                        <div className="text-[9px] text-black/60 dark:text-white/60 font-mono tracking-wider mt-0.5 uppercase">LeetCode</div>
+                                    </div>
+                                    <div className="w-full h-px bg-black/[0.1] dark:bg-white/[0.1]" />
+                                    <div className="flex flex-col">
+                                        <div className="text-3xl font-light tabular-nums">1217</div>
+                                        <div className="text-[9px] text-black/60 dark:text-white/60 font-mono tracking-wider mt-0.5 uppercase">Codeforces</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </ChaosContainer>
+
+                        {/* 5. Tech Stack (1x1 on grid, maybe spanning) */}
+                        <ChaosContainer intensity="low" direction="left" delay={0.6} className="md:col-span-2 lg:col-span-2 md:row-span-1 h-full">
+                            <div className={bentoCardClass + " p-6 flex flex-col justify-center"}>
+                                <h2 className="text-[10px] font-mono text-black/60 dark:text-white/60 mb-4 tracking-widest uppercase">Select Technologies</h2>
+                                <div className="flex flex-wrap gap-2">
+                                    {TECHNOLOGIES.slice(0, 7).map((tech) => (
                                         <Badge
                                             key={tech}
                                             variant="secondary"
-                                            className="bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.06] text-black/60 dark:text-white/60 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-300 px-2.5 py-1 rounded-lg font-mono text-[11px] font-normal cursor-default active:scale-95"
+                                            className="bg-black/[0.04] dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] text-black/70 dark:text-white/70 px-2.5 py-1 rounded-lg font-mono text-[10px] font-normal"
                                         >
                                             {tech}
                                         </Badge>
                                     ))}
                                 </div>
-                            </ChaosContainer>
+                            </div>
+                        </ChaosContainer>
 
-                            {/* Social row */}
-                            <ChaosContainer intensity="low" delay={0.8}>
-                                <div className="flex gap-2 justify-center lg:justify-start">
-                                    {SOCIAL_LINKS.map((social) => (
-                                        <a
-                                            key={social.name}
-                                            href={social.href}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="p-2.5 rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] hover:bg-black dark:hover:bg-white hover:border-black dark:hover:border-white group transition-all duration-300 active:scale-95"
-                                            title={social.name}
-                                        >
-                                            <social.icon className="w-4 h-4 text-black/50 dark:text-white/50 group-hover:text-white dark:group-hover:text-black transition-colors duration-300" />
-                                        </a>
-                                    ))}
+                        {/* 6. Socials (1x1 or 2x1) */}
+                        <ChaosContainer intensity="low" direction="right" delay={0.7} className="md:col-span-1 lg:col-span-2 md:row-span-1 h-full">
+                            <div className={bentoCardClass + " p-6 flex flex-col justify-center items-center lg:flex-row lg:justify-start gap-4"}>
+                                <p className="text-[10px] font-mono text-black/60 dark:text-white/60 tracking-widest uppercase hidden lg:block mr-2">Connect</p>
+                                <div className="flex gap-3 grid-cols-2 lg:flex lg:flex-nowrap">
+                                    <TooltipProvider>
+                                        {SOCIAL_LINKS.map((social) => (
+                                            <Tooltip key={social.name}>
+                                                <TooltipTrigger asChild>
+                                                    <a
+                                                        href={social.href}
+                                                        aria-label={social.name}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={() => track("Social Link Click", { platform: social.name })}
+                                                        className="w-12 h-12 lg:w-10 lg:h-10 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black flex items-center justify-center transition-all duration-300"
+                                                    >
+                                                        <social.icon className="w-4 h-4 lg:w-3.5 lg:h-3.5" />
+                                                    </a>
+                                                </TooltipTrigger>
+                                                <TooltipContent className="bg-white/70 dark:bg-black/70 backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.06] text-black dark:text-white text-[10px] font-mono tracking-widest px-3 py-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_20px_rgba(255,255,255,0.1)] transition-all duration-300">
+                                                    <p>{social.name}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        ))}
+                                    </TooltipProvider>
                                 </div>
-                            </ChaosContainer>
-                        </div>
+                            </div>
+                        </ChaosContainer>
 
-                        {/* RIGHT — Terminal + Stats, side by side on desktop */}
-                        <div className="w-full lg:w-[320px] shrink-0 space-y-3">
-                            <ChaosContainer intensity="low" direction="right" delay={0.5}>
-                                <Card className="border border-black/[0.06] dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] backdrop-blur-sm rounded-2xl">
-                                    <CardContent className="p-4">
-                                        <div className="flex items-center gap-1.5 mb-3">
-                                            <div className="w-2 h-2 rounded-full bg-red-400/50" />
-                                            <div className="w-2 h-2 rounded-full bg-yellow-400/50" />
-                                            <div className="w-2 h-2 rounded-full bg-green-400/50" />
-                                            <span className="ml-1.5 text-[9px] font-mono text-black/25 dark:text-white/25">~/hrushi</span>
-                                        </div>
-                                        <div className="font-mono space-y-1.5">
-                                            <TerminalLine text="whoami" delay={2000} />
-                                            <TerminalLine text="  Hrushi Bhanvadiya" delay={2600} prefix="→" />
-                                            <TerminalLine text="cat interests.txt" delay={3300} />
-                                            <TerminalLine text="  Systems · RAG · WebGPU" delay={3900} prefix="→" />
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </ChaosContainer>
-
-                            <ChaosContainer intensity="low" direction="right" delay={0.7}>
-                                <Card className="border border-black/[0.06] dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] backdrop-blur-sm rounded-2xl">
-                                    <CardContent className="p-4">
-                                        <p className="text-[9px] font-mono text-black/30 dark:text-white/30 uppercase tracking-widest mb-3 text-center">Competitive Coding</p>
-                                        <div className="grid grid-cols-2 gap-4 text-center">
-                                            <div>
-                                                <div className="text-2xl font-extralight tracking-tight">1798</div>
-                                                <div className="text-[10px] text-black/40 dark:text-white/40 font-mono mt-0.5">LeetCode</div>
-                                            </div>
-                                            <div>
-                                                <div className="text-2xl font-extralight tracking-tight">1217</div>
-                                                <div className="text-[10px] text-black/40 dark:text-white/40 font-mono mt-0.5">Codeforces</div>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </ChaosContainer>
-                        </div>
                     </div>
                 </div>
             </main>
 
-            {/* Scroll indicator */}
-            <ChaosContainer intensity="low" direction="top" delay={1.5} className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
+            {/* Scroll indicator - Desktop Only (replaces with NavDock on mobile) */}
+            <ChaosContainer intensity="low" direction="top" delay={1.5} className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 hidden sm:flex">
                 <div className="flex flex-col items-center gap-2">
-                    <p className="text-[10px] text-black/25 dark:text-white/25 font-mono tracking-widest uppercase">Scroll</p>
-                    <Button
-                        onClick={scrollToSkills}
-                        variant="ghost"
-                        size="sm"
-                        className="rounded-full w-10 h-10 border border-black/[0.06] dark:border-white/[0.06] bg-white/40 dark:bg-white/[0.02] backdrop-blur-sm animate-bounce active:scale-90"
-                    >
-                        <ChevronDown className="w-4 h-4" />
-                    </Button>
+                    <p className="text-[9px] text-black/60 dark:text-white/60 font-mono tracking-widest uppercase">Scroll</p>
+                    <div className="w-[1px] h-8 bg-gradient-to-b from-black/50 to-transparent dark:from-white/50" />
                 </div>
             </ChaosContainer>
         </section>

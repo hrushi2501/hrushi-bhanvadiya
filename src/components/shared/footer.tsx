@@ -23,9 +23,9 @@ const CONNECT_LINKS = [
 
 const PROJECT_LINKS = [
     { label: "Axon OS", href: "#projects" },
+    { label: "Internship Scraper", href: "#projects" },
+    { label: "Clinical AI", href: "#projects" },
     { label: "Financial RAG", href: "#projects" },
-    { label: "DB Index Visualizer", href: "#projects" },
-    { label: "CPU Scheduler", href: "#projects" },
 ];
 
 const ABOUT_LINKS = [
@@ -64,13 +64,13 @@ export default function Footer({ className }: FooterProps) {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 sm:gap-6">
                     {/* Navigate */}
                     <div>
-                        <h4 className="text-[11px] font-medium uppercase tracking-[0.15em] text-black/80 dark:text-white/80 mb-4">Navigate</h4>
-                        <ul className="space-y-2.5">
+                        <h4 className="text-[12px] font-semibold uppercase tracking-[0.15em] text-black/80 dark:text-white/80 mb-5">Navigate</h4>
+                        <ul className="space-y-3">
                             {NAV_LINKS.map((link) => (
                                 <li key={link.label}>
                                     <button
                                         onClick={() => scrollTo(link.href)}
-                                        className="text-[13px] text-black/45 dark:text-white/45 hover:text-black dark:hover:text-white transition-colors duration-200"
+                                        className="text-sm text-black/70 dark:text-white/70 hover:text-black dark:hover:text-white transition-colors duration-200"
                                     >
                                         {link.label}
                                     </button>
@@ -81,15 +81,15 @@ export default function Footer({ className }: FooterProps) {
 
                     {/* Connect */}
                     <div>
-                        <h4 className="text-[11px] font-medium uppercase tracking-[0.15em] text-black/80 dark:text-white/80 mb-4">Connect</h4>
-                        <ul className="space-y-2.5">
+                        <h4 className="text-[12px] font-semibold uppercase tracking-[0.15em] text-black/80 dark:text-white/80 mb-5">Connect</h4>
+                        <ul className="space-y-3">
                             {CONNECT_LINKS.map((link) => (
                                 <li key={link.label}>
                                     <a
                                         href={link.href}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-[13px] text-black/45 dark:text-white/45 hover:text-black dark:hover:text-white transition-colors duration-200"
+                                        className="text-sm text-black/70 dark:text-white/70 hover:text-black dark:hover:text-white transition-colors duration-200"
                                     >
                                         {link.label}
                                     </a>
@@ -100,13 +100,13 @@ export default function Footer({ className }: FooterProps) {
 
                     {/* Projects */}
                     <div>
-                        <h4 className="text-[11px] font-medium uppercase tracking-[0.15em] text-black/80 dark:text-white/80 mb-4">Projects</h4>
-                        <ul className="space-y-2.5">
+                        <h4 className="text-[12px] font-semibold uppercase tracking-[0.15em] text-black/80 dark:text-white/80 mb-5">Projects</h4>
+                        <ul className="space-y-3">
                             {PROJECT_LINKS.map((link) => (
                                 <li key={link.label}>
                                     <button
                                         onClick={() => scrollTo(link.href)}
-                                        className="text-[13px] text-black/45 dark:text-white/45 hover:text-black dark:hover:text-white transition-colors duration-200 text-left"
+                                        className="text-sm text-black/70 dark:text-white/70 hover:text-black dark:hover:text-white transition-colors duration-200 text-left"
                                     >
                                         {link.label}
                                     </button>
@@ -117,8 +117,8 @@ export default function Footer({ className }: FooterProps) {
 
                     {/* About */}
                     <div>
-                        <h4 className="text-[11px] font-medium uppercase tracking-[0.15em] text-black/80 dark:text-white/80 mb-4">About</h4>
-                        <ul className="space-y-2.5">
+                        <h4 className="text-[12px] font-semibold uppercase tracking-[0.15em] text-black/80 dark:text-white/80 mb-5">About</h4>
+                        <ul className="space-y-3">
                             {ABOUT_LINKS.map((link) => (
                                 <li key={link.label}>
                                     <a
@@ -131,7 +131,7 @@ export default function Footer({ className }: FooterProps) {
                                                 scrollTo(link.href);
                                             }
                                         }}
-                                        className="text-[13px] text-black/45 dark:text-white/45 hover:text-black dark:hover:text-white transition-colors duration-200"
+                                        className="text-sm text-black/70 dark:text-white/70 hover:text-black dark:hover:text-white transition-colors duration-200"
                                     >
                                         {link.label}
                                     </a>
@@ -146,13 +146,13 @@ export default function Footer({ className }: FooterProps) {
             <div className="max-w-6xl mx-auto px-4 sm:px-8">
                 <div className="h-[1px] bg-black/[0.06] dark:bg-white/[0.06]" />
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 py-5">
-                    <p className="text-[12px] text-black/35 dark:text-white/35">
+                    <p className="text-[12px] text-black/60 dark:text-white/60">
                         Copyright © {currentYear} Hrushi Bhanvadiya. All rights reserved.
                     </p>
 
-                    <div className="flex items-center gap-4 text-[12px] text-black/35 dark:text-white/35">
+                    <div className="flex items-center gap-4 text-[12px] text-black/60 dark:text-white/60">
                         <span>Ahmedabad, India</span>
-                        <span className="text-black/10 dark:text-white/10">|</span>
+                        <span className="text-black/30 dark:text-white/30">|</span>
                         <button
                             onClick={scrollToTop}
                             className="flex items-center gap-1.5 hover:text-black dark:hover:text-white transition-colors duration-200 group"
