@@ -5,6 +5,7 @@ import "./globals.css";
 import { ParallaxBackground } from "@/components/ui/parallax-background";
 import { GlobalInteraction } from "@/components/layout/global-interaction";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -49,6 +50,7 @@ export default function RootLayout({
           </GlobalInteraction>
         </ThemeProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
