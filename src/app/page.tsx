@@ -525,9 +525,7 @@ export default function Portfolio() {
         </div>
 
         {/* Chatbot */}
-        <div className="animate-[fadeScaleIn_0.8s_cubic-bezier(0.22,1,0.36,1)_2.6s_both]">
-          <ChatBot />
-        </div>
+        <ChatBot />
       </div>
     </>
   );

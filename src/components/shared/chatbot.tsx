@@ -90,7 +90,7 @@ export default function ChatBot() {
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0 }}
                         transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                        className="fixed bottom-[90px] sm:bottom-5 right-5 z-40"
+                        className="fixed bottom-[90px] sm:bottom-5 right-5 z-[200]"
                     >
                         <Button
                             aria-label="Toggle Chatbot"
@@ -113,7 +113,7 @@ export default function ChatBot() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        className="fixed bottom-[90px] sm:bottom-5 right-5 z-40 w-[calc(100vw-2.5rem)] sm:w-[400px] h-[min(600px,calc(100vh-120px))] sm:h-[min(600px,calc(100vh-3rem))] flex flex-col rounded-3xl overflow-hidden border border-black/[0.08] dark:border-white/[0.08] bg-white/70 dark:bg-[#0a0a0a]/50 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_rgba(255,255,255,0.02)]"
+                        className="fixed bottom-[90px] sm:bottom-5 right-5 z-[200] w-[calc(100vw-2.5rem)] sm:w-[400px] h-[min(600px,calc(100vh-120px))] sm:h-[min(600px,calc(100vh-3rem))] flex flex-col rounded-3xl overflow-hidden border border-black/[0.08] dark:border-white/[0.08] bg-white/70 dark:bg-[#0a0a0a]/50 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_rgba(255,255,255,0.02)]"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between px-5 py-4 border-b border-black/[0.06] dark:border-white/[0.06]">
