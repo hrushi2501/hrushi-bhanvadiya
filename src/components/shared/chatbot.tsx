@@ -19,6 +19,28 @@ const SUGGESTIONS = [
     "How can I contact Hrushi?",
 ];
 
+function parseMessageContent(text: string) {
+    const lines = text.split('\n');
+    return lines.map((line, i) => {
+        // Match **bold** or *italic*
+        const parts = line.split(/(\*\*.*?\*\*|\*.*?\*)/g);
+        return (
+            <span key={i}>
+                {parts.map((part, j) => {
+                    if (part.startsWith('**') && part.endsWith('**')) {
+                        return <strong key={j} className="font-semibold text-black dark:text-white">{part.slice(2, -2)}</strong>;
+                    }
+                    if (part.startsWith('*') && part.endsWith('*')) {
+                        return <em key={j} className="italic">{part.slice(1, -1)}</em>;
+                    }
+                    return <span key={j}>{part}</span>;
+                })}
+                {i < lines.length - 1 && <br />}
+            </span>
+        );
+    });
+}
+
 export default function ChatBot() {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
@@ -147,7 +169,7 @@ export default function ChatBot() {
                                             ? "bg-black dark:bg-white text-white dark:text-black rounded-br-sm"
                                             : "bg-white/80 dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.08] border-b-black/[0.1] dark:border-b-white/[0.1] rounded-bl-sm text-black dark:text-white"
                                     )}>
-                                        {msg.content}
+                                        {parseMessageContent(msg.content)}
                                     </div>
                                 </div>
                             ))}

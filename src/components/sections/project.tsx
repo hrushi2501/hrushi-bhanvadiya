@@ -9,6 +9,7 @@ import { ChaosContainer } from "@/components/ui/chaos-container";
 import { cn } from "@/lib/utils";
 import { track } from "@vercel/analytics";
 import { motion, AnimatePresence } from "framer-motion";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import {
     Pagination,
     PaginationContent,
@@ -124,8 +125,6 @@ const PROJECTS: Project[] = [
     },
 ];
 
-const ITEMS_PER_PAGE = 4;
-
 function ProjectCard({ project, index }: { project: Project; index: number }) {
     return (
         <ChaosContainer
@@ -194,8 +193,16 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
 }
 
 export default function Projects({ className }: ProjectProps) {
+    const isMobile = useMediaQuery("(max-width: 768px)");
+    const ITEMS_PER_PAGE = isMobile ? 2 : 4;
     const [currentPage, setCurrentPage] = useState(0);
     const totalPages = Math.ceil(PROJECTS.length / ITEMS_PER_PAGE);
+
+    // Ensure we don't land on an empty page after resizing
+    if (currentPage >= totalPages && totalPages > 0) {
+        setCurrentPage(Math.max(0, totalPages - 1));
+    }
+
     const startIdx = currentPage * ITEMS_PER_PAGE;
     const currentProjects = PROJECTS.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 

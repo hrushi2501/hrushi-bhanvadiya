@@ -61,12 +61,12 @@ export default function Contact({ className }: ContactProps) {
     }, [formData, handleSubmit]);
 
     return (
-        <section id="contact" className={`py-16 md:py-24 ${className}`}>
-            <div className="max-w-3xl mx-auto px-4 sm:px-8">
+        <section id="contact" className={`py-16 md:py-24 flex flex-col items-center justify-center ${className}`}>
+            <div className="max-w-3xl w-full mx-auto px-4 sm:px-8 flex flex-col items-center justify-center">
                 {/* Header */}
-                <ChaosContainer intensity="medium" direction="top" delay={0.1}>
-                    <div className="text-center mb-14">
-                        <p className="text-xs font-mono text-black/40 dark:text-white/40 uppercase tracking-[0.2em] mb-3">
+                <ChaosContainer intensity="medium" direction="top" delay={0.1} className="w-full flex flex-col items-center">
+                    <div className="flex flex-col items-center justify-center text-center mb-14 w-full">
+                        <p className="text-xs font-mono text-black/40 dark:text-white/40 uppercase tracking-[0.2em] mb-3 ml-[0.2em]">
                             Get in touch
                         </p>
                         <h2 className="scroll-m-20 text-3xl font-semibold tracking-tight first:mt-0">

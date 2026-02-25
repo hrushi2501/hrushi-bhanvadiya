@@ -149,7 +149,7 @@ export default function Hero() {
             <main className="relative z-10 flex-1 flex items-center pt-24 pb-24">
                 <div className="max-w-5xl mx-auto px-4 sm:px-8 w-full">
                     {/* Bento Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[160px] md:auto-rows-[190px]">
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[minmax(180px,auto)] md:auto-rows-[190px]">
 
                         {/* 1. Main Identity (2x2) */}
                         <ChaosContainer intensity="low" delay={0.2} className="md:col-span-2 md:row-span-2 h-full">
@@ -168,7 +168,7 @@ export default function Hero() {
                                         <span className="font-light text-black/70 dark:text-white/70">Bhanvadiya</span>
                                     </h1>
                                     <p className="text-black/70 dark:text-white/70 font-light max-w-sm text-sm sm:text-base">
-                                        Computer Science Undergrad building robust systems & intelligent solutions.
+                                        Computer Science Undergrad building stuff.
                                     </p>
                                 </div>
                                 <div className="mt-8">

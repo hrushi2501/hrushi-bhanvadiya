@@ -159,7 +159,7 @@ function MobileBottomDock() {
 
   return (
     <div
-      className="sm:hidden fixed bottom-6 left-1/2 z-[100] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] flex items-center justify-center pointer-events-none"
+      className="sm:hidden fixed bottom-10 left-1/2 z-[100] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] flex items-center justify-center pointer-events-none"
       style={{
         transform: `translateX(-50%) translateY(${visible ? 0 : 120}px) scale(${visible ? 1 : 0.95})`,
         opacity: visible ? 1 : 0,
@@ -180,8 +180,8 @@ function MobileBottomDock() {
               {isActive && (
                 <span className="absolute inset-0 bg-black/[0.04] dark:bg-white/[0.08] rounded-xl" />
               )}
-              <item.icon className={`w-[22px] h-[22px] mb-1 transition-transform duration-300 ${isActive ? "-translate-y-0.5" : "translate-y-1.5"}`} strokeWidth={isActive ? 2.5 : 2} />
-              <span className={`text-[9px] font-semibold tracking-wide transition-all duration-300 ${isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+              <item.icon className={`w-[22px] h-[22px] mb-1.5 transition-transform duration-300 ${isActive ? "-translate-y-1" : "translate-y-1.5"}`} strokeWidth={isActive ? 2.5 : 2} />
+              <span className={`text-[9px] font-semibold tracking-wide transition-all duration-300 absolute bottom-1.5 ${isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
                 {item.label}
               </span>
             </button>
